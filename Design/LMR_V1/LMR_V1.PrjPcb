@@ -113,7 +113,7 @@ ClassGenCCAutoRoomEnabled=1
 ClassGenNCAutoScope=None
 DItemRevisionGUID=
 GenerateClassCluster=0
-DocumentUniqueId=FBXPCSWB
+DocumentUniqueId=RQJSEGFJ
 
 [Document5]
 DocumentPath=USB2Serial.SchDoc
@@ -165,6 +165,10 @@ ClassGenNCAutoScope=None
 DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=PZIHLPGS
+
+[GeneratedDocument1]
+DocumentPath=Project Outputs for LMR_V1\Net Status - PCB1.html
+DItemRevisionGUID=
 
 [Configuration1]
 Name=Sources
@@ -285,7 +289,7 @@ OutputDefault20=0
 [OutputGroup2]
 Name=Simulator Outputs
 Description=
-TargetPrinter=Adobe PDF
+TargetPrinter=HP LaserJet P2050 Series PCL6
 PrinterOptions=Record=PrinterOptions|Copies=1|Duplex=1|TrueTypeOptions=3|Collate=1|PrintJobKind=1|PrintWhat=1
 
 [OutputGroup3]
