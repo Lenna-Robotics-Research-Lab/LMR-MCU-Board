@@ -29,6 +29,10 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include "ultrasonic.h"
+#include "stdio.h"
+#include "stdlib.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,6 +52,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+
+uint8_t Distance;
 
 /* USER CODE END PV */
 
@@ -103,16 +109,22 @@ int main(void)
   MX_TIM9_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
-
+  LMR_US1_Init();
+  uint8_t MSG[32];
+  HAL_UART_Transmit(&huart1, "HELLO\n", sizeof("HELLO\n"), 100);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  LMR_US1_Trig();
+	  sprintf(MSG,"Dist is : %d \r\n", Distance);
+	  HAL_UART_Transmit(&huart1, MSG, sizeof(MSG), 100);
+	  HAL_Delay(500);
     /* USER CODE END WHILE */
-
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -164,6 +176,10 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
+	Distance = LMR_US1_Read(htim);
+}
 
 /* USER CODE END 4 */
 

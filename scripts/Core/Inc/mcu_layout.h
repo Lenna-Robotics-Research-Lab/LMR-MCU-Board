@@ -1,12 +1,20 @@
+/*
+ * mcu_layout.h
+ *
+ *  Created on: Oct 11, 2023
+ *      Author: Lenna Robotics
+ */
+
 #define BUZZER_PORT 	GPIOA
 #define Buzzer_PIN 		GPIO_PIN_4
 
 #define BLINK_LED_PORT 	GPIOD
 #define BLINK_LED_PIN 	GPIO_PIN_10
 
-//=========================================== BAT ADC ===========================================
+//=========================================== BAT ADC =========================================
+
 #define BAT_ADC_PORT 	GPIOA
-#define BAT_ADC_PORT 	GPIO
+#define BAT_ADC_PIN 	GPIO_PIN_5
 
 //=========================================== MOTOR ===========================================
 
@@ -37,3 +45,20 @@
 #define ENCODER2_COUNTER 	TIM2->CNT
 #define MOTOR1_PWM 			TIM8->CCR1
 #define MOTOR2_PWM 			TIM8->CCR2
+
+//=========================================== UltraSonic ========================================
+
+#define US1_TRIG_PORT		GPIOE
+#define US2_TRIG_PORT		GPIOE
+#define US3_TRIG_PORT		GPIOE
+#define US4_TRIG_PORT		GPIOE
+
+#define US1_TRIG_PIN		GPIO_PIN_0
+#define US2_TRIG_PIN		GPIO_PIN_1
+#define US3_TRIG_PIN		GPIO_PIN_3
+#define US4_TRIG_PIN		GPIO_PIN_4
+
+
+
+
+

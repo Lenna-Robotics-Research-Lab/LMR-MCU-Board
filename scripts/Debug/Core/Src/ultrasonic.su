@@ -1,0 +1,4 @@
+../Core/Src/ultrasonic.c:14:6:LMR_Delayus	16	static
+../Core/Src/ultrasonic.c:20:6:LMR_US1_Init	8	static
+../Core/Src/ultrasonic.c:25:6:LMR_US1_Trig	8	static
+../Core/Src/ultrasonic.c:34:9:LMR_US1_Read	32	static
