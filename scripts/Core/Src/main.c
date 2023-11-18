@@ -28,10 +28,12 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
-#include "ultrasonic.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include "stdbool.h"
+#include "mcu_layout.h"
+#include "ultrasonic.h"
+#include "utilities.h"
 
 /* USER CODE END Includes */
 
@@ -46,14 +48,25 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
 
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+char MSG[64];
 
-uint8_t Distance;
+const ultrasonic_cfgType us_front =
+{
+	US1_TRIG_PORT,
+	US1_TRIG_PIN,
+	&htim4,
+	TIM4,
+	TIM_CHANNEL_3,
+	168,
+	1
+};
 
 /* USER CODE END PV */
 
@@ -65,6 +78,14 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+PUTCHAR_PROTOTYPE
+{
+  /* Place your implementation of fputc here */
+  /* e.g. write a character to the USART1 and Loop until the end of transmission */
+  HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
+
+  return ch;
+}
 
 /* USER CODE END 0 */
 
@@ -109,22 +130,24 @@ int main(void)
   MX_TIM9_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
-  MX_TIM6_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-  LMR_US1_Init();
-  uint8_t MSG[32];
-  HAL_UART_Transmit(&huart1, "HELLO\n", sizeof("HELLO\n"), 100);
+  LRL_Delay_Init();			// TIMER Initialization for Delay us
+  LRL_US_Init(us_front); 	// TIMER Initialization for Ultrasonics
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  LMR_US1_Trig();
-	  sprintf(MSG,"Dist is : %d \r\n", Distance);
-	  HAL_UART_Transmit(&huart1, MSG, sizeof(MSG), 100);
-	  HAL_Delay(500);
+	LRL_US_Trig(us_front);	// Trigging the Sensor for 15us
+
+	sprintf(MSG, "Distance:\t %05.1f \r\n", LRL_US_Read(us_front));
+	printf(MSG);
+
+	HAL_Delay(100);
     /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -176,9 +199,16 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+	// TIMER Input Capture Callback
+	LRL_US_TMR_IC_ISR(htim, us_front);
+}
 
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
-	Distance = LMR_US1_Read(htim);
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+{
+	// TIMER Overflow Callback
+	LRL_US_TMR_OVF_ISR(htim, us_front);
 }
 
 /* USER CODE END 4 */

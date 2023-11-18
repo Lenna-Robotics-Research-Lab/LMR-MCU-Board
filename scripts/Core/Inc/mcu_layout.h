@@ -2,7 +2,10 @@
  * mcu_layout.h
  *
  *  Created on: Oct 11, 2023
- *      Author: Lenna Robotics
+ *      Author: Lenna Robotics Research Laboratory
+ *      		Autonomous Systems Research Branch
+ *				Iran University of Science and Technology
+ *		GitHub:	github.com/Lenna-Robotics-Research-Lab
  */
 
 #define BUZZER_PORT 	GPIOA
@@ -58,7 +61,5 @@
 #define US3_TRIG_PIN		GPIO_PIN_3
 #define US4_TRIG_PIN		GPIO_PIN_4
 
-
-
-
+#define ULTRASONIC_UNITS	4
 
