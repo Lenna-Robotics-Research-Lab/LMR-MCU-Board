@@ -34,6 +34,7 @@
 #include "mcu_layout.h"
 #include "ultrasonic.h"
 #include "utilities.h"
+#include "motion.h"
 
 /* USER CODE END Includes */
 
@@ -56,6 +57,37 @@
 
 /* USER CODE BEGIN PV */
 char MSG[64];
+
+uint16_t encoder_tick[2] = {0};
+
+const motor_cfgType motor_right =
+{
+	MOTOR_PORT,
+	MOTOR1_A_PIN,
+	MOTOR_PORT,
+	MOTOR1_B_PIN,
+	&htim8,
+	TIM_CHANNEL_1,
+	1000
+};
+const motor_cfgType motor_left =
+{
+	MOTOR_PORT,
+	MOTOR2_A_PIN,
+	MOTOR_PORT,
+	MOTOR2_B_PIN,
+	&htim8,
+	TIM_CHANNEL_2,
+	1000
+};
+
+const diffDrive_cfgType diff_robot =
+{
+	motor_right,
+	motor_left,
+	65,
+	200
+};
 
 const ultrasonic_cfgType us_front =
 {
@@ -134,18 +166,59 @@ int main(void)
   /* USER CODE BEGIN 2 */
   LRL_Delay_Init();			// TIMER Initialization for Delay us
   LRL_US_Init(us_front); 	// TIMER Initialization for Ultrasonics
+
+  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
+  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+  HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
+
+  printf("Lenna Robotics Research Lab. \r\n");
+  // HAL_Delay(1000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	LRL_US_Trig(us_front);	// Trigging the Sensor for 15us
+//	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_1, GPIO_PIN_SET);
+//	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
+//
+//	  TIM8->CCR2 = 1000;
+//
+//	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_SET);
+//	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_3, GPIO_PIN_RESET);
+//
+//	  TIM8->CCR1 = 1000;
 
-	sprintf(MSG, "Distance:\t %05.1f \r\n", LRL_US_Read(us_front));
-	printf(MSG);
 
-	HAL_Delay(100);
+	  LRL_Motion_Control(diff_robot, 50, 50);
+
+//	  LRL_Motor_Speed(motor_right, 100);
+//	  LRL_Motor_Speed(motor_left, -50);
+//	  HAL_Delay(1000);
+//	  LRL_Motor_Speed(motor_right, 0);
+//	  LRL_Motor_Speed(motor_left, 0);
+//	  HAL_Delay(1000);
+//	  LRL_Motor_Speed(motor_right, -100);
+//	  LRL_Motor_Speed(motor_left, 50);
+//	  HAL_Delay(1000);
+//	  LRL_Motor_Speed(motor_right, 0);
+//	  LRL_Motor_Speed(motor_left, 0);
+//	  HAL_Delay(1000);
+
+	  encoder_tick[0] = (TIM2->CNT);
+	  encoder_tick[1] = (TIM3->CNT);
+
+	  sprintf(MSG, "encoder ticks: %04d\t%04d\r\n", encoder_tick[0], encoder_tick[1]);
+	  printf(MSG);
+
+
+//	LRL_US_Trig(us_front);	// Trigging the Sensor for 15us
+//
+//	sprintf(MSG, "Distance:\t %05.1f \r\n", LRL_US_Read(us_front));
+//	printf(MSG);
+//
+//	HAL_Delay(100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
