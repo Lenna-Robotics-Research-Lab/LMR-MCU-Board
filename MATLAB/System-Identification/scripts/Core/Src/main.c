@@ -177,6 +177,8 @@ int main(void)
   uint16_t i=1000;
   uint32_t j=0;
   uint16_t enc_temp = 0 , enc_diff = 0;
+  TIM2->CNT = 0;
+  TIM3->CNT = 0;
   encoder_tick[0] = (TIM2->CNT);
   encoder_tick[1] = (TIM3->CNT);
 
@@ -198,7 +200,7 @@ int main(void)
 //	  TIM8->CCR1 = 1000;
 
 
-	  LRL_Motion_Control(diff_robot, 0, 70);
+	  LRL_Motion_Control(diff_robot, -50, 0);
 
 //	  LRL_Motor_Speed(motor_right, 100);
 //	  LRL_Motor_Speed(motor_left, -50);
@@ -216,15 +218,28 @@ int main(void)
 	  encoder_tick[0] = (TIM2->CNT);
 	  encoder_tick[1] = (TIM3->CNT);
 
-	  if(encoder_tick[1] - enc_temp >= 0)
+//	  if(encoder_tick[0] < 24480)
+//	  {
+//		  LRL_Motion_Control(diff_robot, -40,0);
+//	  }
+//	  else
+//	  {
+//		  LRL_Motion_Control(diff_robot, 0, 0);
+//		  TIM2->CNT = 0;
+//		  HAL_Delay(1000);
+//	  }
+
+
+
+	  if(encoder_tick[0] - enc_temp >= 0)
 	  {
-		  enc_diff = encoder_tick[1] - enc_temp;
+		  enc_diff = encoder_tick[0] - enc_temp;
 	  }
 	  else
 	  {
-		  enc_diff = (48960 - enc_temp) + encoder_tick[1];
+		  enc_diff = (48960 - enc_temp) + encoder_tick[0];
 	  }
-	  enc_temp = encoder_tick[1];
+	  enc_temp = encoder_tick[0];
 
 
 //	  sprintf(MSG, "encoder ticks: %04d\t%04d\r\n", encoder_tick[0], encoder_tick[1]);
