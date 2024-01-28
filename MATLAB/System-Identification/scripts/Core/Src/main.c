@@ -68,7 +68,8 @@ const motor_cfgType motor_right =
 	MOTOR1_B_PIN,
 	&htim8,
 	TIM_CHANNEL_1,
-	1000
+	1000,
+	1
 };
 const motor_cfgType motor_left =
 {
@@ -78,7 +79,8 @@ const motor_cfgType motor_left =
 	MOTOR2_B_PIN,
 	&htim8,
 	TIM_CHANNEL_2,
-	1000
+	1000,
+	-1
 };
 
 const diffDrive_cfgType diff_robot =
@@ -174,8 +176,7 @@ int main(void)
 
   //printf("Lenna Robotics Research Lab. \r\n");
   // HAL_Delay(1000);
-  uint16_t i=1000;
-  uint32_t j=0;
+
   uint16_t enc_temp = 0 , enc_diff = 0;
   TIM2->CNT = 0;
   TIM3->CNT = 0;
@@ -200,7 +201,7 @@ int main(void)
 //	  TIM8->CCR1 = 1000;
 
 
-	  LRL_Motion_Control(diff_robot, -50, 0);
+	  LRL_Motion_Control(diff_robot, -100, 100);
 
 //	  LRL_Motor_Speed(motor_right, 100);
 //	  LRL_Motor_Speed(motor_left, -50);
@@ -240,6 +241,7 @@ int main(void)
 		  enc_diff = (48960 - enc_temp) + encoder_tick[0];
 	  }
 	  enc_temp = encoder_tick[0];
+	  // angular_velocity = enc_diff * (6000 / 48960)
 
 
 //	  sprintf(MSG, "encoder ticks: %04d\t%04d\r\n", encoder_tick[0], encoder_tick[1]);
