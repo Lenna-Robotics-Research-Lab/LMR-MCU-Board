@@ -58,6 +58,8 @@
 /* USER CODE BEGIN PV */
 char MSG[64];
 
+uint8_t input_speed ;// step given by MATLAB code
+
 uint16_t encoder_tick[2] = {0};
 
 const motor_cfgType motor_right =
@@ -182,6 +184,7 @@ int main(void)
   TIM3->CNT = 0;
   encoder_tick[0] = (TIM2->CNT);
   encoder_tick[1] = (TIM3->CNT);
+  HAL_UART_Receive_IT(&huart1,&input_speed, 1);
 
   /* USER CODE END 2 */
 
@@ -201,9 +204,22 @@ int main(void)
 //	  TIM8->CCR1 = 1000;
 
 
-	  LRL_Motion_Control(diff_robot, -100, 100);
+	  //LRL_Motion_Control(diff_robot, -100, 100);
 
-//	  LRL_Motor_Speed(motor_right, 100);
+
+//	  if(input_speed >= 50 && input_speed <= 100)
+//	  {
+//		  LRL_Motor_Speed(motor_left, -1*input_speed);
+//	  }
+//	  else
+//	  {
+//		  HAL_GPIO_TogglePin(BLINK_LED_PORT, BLINK_LED_PIN);
+//		  HAL_Delay(100);
+//		  LRL_Motor_Speed(motor_left, 0);
+//	  }
+
+	  LRL_Motor_Speed(motor_left, -1*input_speed);
+
 //	  LRL_Motor_Speed(motor_left, -50);
 //	  HAL_Delay(1000);
 //	  LRL_Motor_Speed(motor_right, 0);
@@ -230,8 +246,6 @@ int main(void)
 //		  HAL_Delay(1000);
 //	  }
 
-
-
 	  if(encoder_tick[0] - enc_temp >= 0)
 	  {
 		  enc_diff = encoder_tick[0] - enc_temp;
@@ -241,6 +255,16 @@ int main(void)
 		  enc_diff = (48960 - enc_temp) + encoder_tick[0];
 	  }
 	  enc_temp = encoder_tick[0];
+
+//	  if(encoder_tick[0] - enc_temp >= 0)
+//	  {
+//		  enc_diff = encoder_tick[0] - enc_temp;
+//	  }
+//	  else
+//	  {
+//		  enc_diff = (48960 - enc_temp) + encoder_tick[0];
+//	  }
+//	  enc_temp = encoder_tick[0];
 	  // angular_velocity = enc_diff * (6000 / 48960)
 
 
@@ -253,13 +277,13 @@ int main(void)
 //	sprintf(MSG, "Distance:\t %05.1f \r\n", LRL_US_Read(us_front));
 //	printf(MSG);
 //
-//	HAL_Delay(100);
+	  //HAL_Delay(1000);
 
 
 //	  	sprintf(MSG, "Distance:\t %d \r\n", i);
 //	  	printf(i);
 	  	HAL_UART_Transmit(&huart1, (uint8_t *)&enc_diff, 2, 100);
-	  	HAL_Delay(10);
+	  	HAL_Delay(8);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -317,6 +341,10 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
 	// TIMER Input Capture Callback
 	LRL_US_TMR_IC_ISR(htim, us_front);
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+	HAL_UART_Receive_IT(&huart1,&input_speed, 1);
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
