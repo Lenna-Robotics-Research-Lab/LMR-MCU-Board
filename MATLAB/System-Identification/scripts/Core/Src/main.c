@@ -59,9 +59,10 @@
 char MSG[64];
 
 uint8_t input_speed ;// step given by MATLAB code
-
+uint16_t enc_temp = 0 , enc_diff = 0;
 uint16_t encoder_tick[2] = {0};
 
+uint8_t flag_tx = 0;
 const motor_cfgType motor_right =
 {
 	MOTOR_PORT,
@@ -179,16 +180,19 @@ int main(void)
   //printf("Lenna Robotics Research Lab. \r\n");
   // HAL_Delay(1000);
 
-  uint16_t enc_temp = 0 , enc_diff = 0;
+
   TIM2->CNT = 0;
   TIM3->CNT = 0;
   encoder_tick[0] = (TIM2->CNT);
   encoder_tick[1] = (TIM3->CNT);
+
   HAL_UART_Receive_IT(&huart1,&input_speed, 1);
+
+
+  //HAL_UART_Transmit_IT(&huart1,(uint8_t *)&enc_diff, sizeof(enc_diff));
 
   /* USER CODE END 2 */
 
-  /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
@@ -218,7 +222,7 @@ int main(void)
 //		  LRL_Motor_Speed(motor_left, 0);
 //	  }
 
-	  LRL_Motor_Speed(motor_left, -1*input_speed);
+	  LRL_Motor_Speed(motor_right, input_speed);
 
 //	  LRL_Motor_Speed(motor_left, -50);
 //	  HAL_Delay(1000);
@@ -246,15 +250,24 @@ int main(void)
 //		  HAL_Delay(1000);
 //	  }
 
-	  if(encoder_tick[0] - enc_temp >= 0)
+
+	  if(encoder_tick[1] - enc_temp >= 0)
 	  {
-		  enc_diff = encoder_tick[0] - enc_temp;
+		  enc_diff = encoder_tick[1] - enc_temp;
 	  }
 	  else
 	  {
-		  enc_diff = (48960 - enc_temp) + encoder_tick[0];
+		  enc_diff = (48960 - enc_temp) + encoder_tick[1];
 	  }
-	  enc_temp = encoder_tick[0];
+	  enc_temp = encoder_tick[1];
+
+	  if(flag_tx == 1){
+		  HAL_UART_Transmit(&huart1,(uint8_t *)&enc_diff, sizeof(enc_diff),10);
+		  flag_tx = 0;
+	  }
+
+	  //HAL_UART_Transmit(&huart1,(uint8_t *)&enc_diff, sizeof(enc_diff),10);
+	  HAL_Delay(10);
 
 //	  if(encoder_tick[0] - enc_temp >= 0)
 //	  {
@@ -282,8 +295,7 @@ int main(void)
 
 //	  	sprintf(MSG, "Distance:\t %d \r\n", i);
 //	  	printf(i);
-	  	HAL_UART_Transmit(&huart1, (uint8_t *)&enc_diff, 2, 100);
-	  	HAL_Delay(8);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -345,7 +357,12 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	HAL_UART_Receive_IT(&huart1,&input_speed, 1);
+	flag_tx = 1;
 }
+
+//void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
+//	//
+//}
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
