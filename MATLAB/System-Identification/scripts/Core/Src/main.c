@@ -35,6 +35,8 @@
 #include "ultrasonic.h"
 #include "utilities.h"
 #include "motion.h"
+#include "pid.h"
+
 
 /* USER CODE END Includes */
 
@@ -59,10 +61,13 @@
 char MSG[64];
 
 uint8_t input_speed ;// step given by MATLAB code
-uint16_t enc_temp = 0 , enc_diff = 0;
+uint16_t left_enc_temp = 0, right_enc_temp = 0 , right_enc_diff = 0, left_enc_diff = 0;
 uint16_t encoder_tick[2] = {0};
-
+float angular_speed_left,angular_speed_right;
+uint16_t tst;
 uint8_t flag_tx = 0;
+
+// ####################   Motor struct Value Setting   ###################
 const motor_cfgType motor_right =
 {
 	MOTOR_PORT,
@@ -72,7 +77,7 @@ const motor_cfgType motor_right =
 	&htim8,
 	TIM_CHANNEL_1,
 	1000,
-	1
+	//1
 };
 const motor_cfgType motor_left =
 {
@@ -83,8 +88,10 @@ const motor_cfgType motor_left =
 	&htim8,
 	TIM_CHANNEL_2,
 	1000,
-	-1
+	//-1
 };
+
+// ####################   Ultra-Sonic struct Value Setting   ###################
 
 const diffDrive_cfgType diff_robot =
 {
@@ -105,6 +112,40 @@ const ultrasonic_cfgType us_front =
 	1
 };
 
+// ####################   PID struct Value Setting   ###################
+
+// definitions concerning PID gain values are made in the main.h header file
+pid_cfgType pid_motor_left =
+{
+	Proportional_Gain_LEFT_MOTOR,
+	Integral_Gain_LEFT_MOTOR,
+	Derivative_Gain_LEFT_MOTOR,
+	Sampling_Time,
+	Lower_Saturation_Limit,
+	Upper_Saturation_Limit,
+	0,
+	0,
+	0,
+	0,
+	1
+};
+
+pid_cfgType pid_motor_right =
+{
+	Proportional_Gain_RIGHT_MOTOR,
+	Integral_Gain_RIGHT_MOTOR,
+	Derivative_Gain_RIGHT_MOTOR,
+	Sampling_Time,
+	Lower_Saturation_Limit,
+	Upper_Saturation_Limit,
+	0,
+	0,
+	0,
+	0,
+	1
+};
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -115,6 +156,8 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+// ####################   UART Tx -> printf   ####################
 PUTCHAR_PROTOTYPE
 {
   /* Place your implementation of fputc here */
@@ -180,37 +223,31 @@ int main(void)
   //printf("Lenna Robotics Research Lab. \r\n");
   // HAL_Delay(1000);
 
-
+// ####################   Encoder Initialization   ####################
   TIM2->CNT = 0;
   TIM3->CNT = 0;
   encoder_tick[0] = (TIM2->CNT);
   encoder_tick[1] = (TIM3->CNT);
 
-  HAL_UART_Receive_IT(&huart1,&input_speed, 1);
+// ####################   MATLAB Communication Initialization   ####################
 
+ /*
+  // Initializing the MATLAB communication and identification
+  // Receiving info from MATLAB SIMULINK for system identification and commands to run speed
+  HAL_UART_Receive_IT(&huart1,&input_speed, 1); // getting the speed
 
-  //HAL_UART_Transmit_IT(&huart1,(uint8_t *)&enc_diff, sizeof(enc_diff));
+ */
 
+  LRL_PID_Init(&pid_motor_left,1);
+  LRL_PID_Init(&pid_motor_right, 1	);
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN WHILE */
   while (1)
   {
 
-//	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_1, GPIO_PIN_SET);
-//	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
-//
-//	  TIM8->CCR2 = 1000;
-//
-//	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_SET);
-//	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_3, GPIO_PIN_RESET);
-//
-//	  TIM8->CCR1 = 1000;
-
-
-	  //LRL_Motion_Control(diff_robot, -100, 100);
-
-
+// ####################   Motor Test Scenarios   ####################
+//	  LRL_Motion_Control(diff_robot, -100, 100);
 //	  if(input_speed >= 50 && input_speed <= 100)
 //	  {
 //		  LRL_Motor_Speed(motor_left, -1*input_speed);
@@ -222,63 +259,70 @@ int main(void)
 //		  LRL_Motor_Speed(motor_left, 0);
 //	  }
 
-	  LRL_Motor_Speed(motor_right, input_speed);
+//	  LRL_Motor_Speed(motor_right, input_speed);
 
-//	  LRL_Motor_Speed(motor_left, -50);
-//	  HAL_Delay(1000);
-//	  LRL_Motor_Speed(motor_right, 0);
-//	  LRL_Motor_Speed(motor_left, 0);
-//	  HAL_Delay(1000);
-//	  LRL_Motor_Speed(motor_right, -100);
-//	  LRL_Motor_Speed(motor_left, 50);
-//	  HAL_Delay(1000);
-//	  LRL_Motor_Speed(motor_right, 0);
-//	  LRL_Motor_Speed(motor_left, 0);
-//	  HAL_Delay(1000);
+// ####################   Encoder Reading   ####################
 
-	  encoder_tick[0] = (TIM2->CNT);
-	  encoder_tick[1] = (TIM3->CNT);
+	  encoder_tick[0] = (TIM2->CNT); // Left Motor Encoder
+	  encoder_tick[1] = (TIM3->CNT); // Right Motor Encoder
 
-//	  if(encoder_tick[0] < 24480)
-//	  {
-//		  LRL_Motion_Control(diff_robot, -40,0);
-//	  }
-//	  else
-//	  {
-//		  LRL_Motion_Control(diff_robot, 0, 0);
-//		  TIM2->CNT = 0;
-//		  HAL_Delay(1000);
-//	  }
+	  // Reading the Encoder for the right Motor
 
-
-	  if(encoder_tick[1] - enc_temp >= 0)
+	  if(encoder_tick[1] - right_enc_temp >= 0)
 	  {
-		  enc_diff = encoder_tick[1] - enc_temp;
+		  right_enc_diff = encoder_tick[1] - right_enc_temp;
 	  }
 	  else
 	  {
-		  enc_diff = (48960 - enc_temp) + encoder_tick[1];
+		  right_enc_diff = (48960 - right_enc_temp) + encoder_tick[1];
 	  }
-	  enc_temp = encoder_tick[1];
+	  right_enc_temp = encoder_tick[1];
 
+	  // Reading the Encoder for the left Motor
+
+	  if(encoder_tick[0] - left_enc_temp >= 0)
+	  {
+		  left_enc_diff = encoder_tick[0] - left_enc_temp;
+	  }
+	  else
+	  {
+		  left_enc_diff = (48960 - left_enc_temp) + encoder_tick[0];
+	  }
+	  left_enc_temp = encoder_tick[0];
+
+
+// ####################   PID control   ####################
+
+	 // The transmission of the encoder tick to angular velocity is (6000 / 48960)
+
+	  angular_speed_left = left_enc_diff * Tick2RMP_Rate * Speed2PWM_Rate;
+	  angular_speed_right = right_enc_diff * Tick2RMP_Rate * Speed2PWM_Rate;
+
+	  LRL_PID_Update(&pid_motor_left,angular_speed_left,75);
+	  LRL_Motor_Speed(motor_left, pid_motor_left.Control_Signal);
+
+	  LRL_PID_Update(&pid_motor_right,angular_speed_right,75);
+	  LRL_Motor_Speed(motor_right, pid_motor_right.Control_Signal);
+	  //tst = (uint16_t)angular_speed;
+	  //HAL_UART_Transmit(&huart1, (uint8_t *)&angular_speed, sizeof(angular_speed),10);
+
+
+
+	  HAL_Delay(10);
+// ####################   Transmit Speed for MATLAB Identification   ####################
+	  /*
+	  // Sending the speed that has been read from encoder only if there is a receiving data
 	  if(flag_tx == 1){
-		  HAL_UART_Transmit(&huart1,(uint8_t *)&enc_diff, sizeof(enc_diff),10);
+		  HAL_UART_Transmit(&huart1,(uint8_t *)&right_enc_diff, sizeof(right_enc_diff),10);
 		  flag_tx = 0;
 	  }
 
-	  //HAL_UART_Transmit(&huart1,(uint8_t *)&enc_diff, sizeof(enc_diff),10);
+	  // Pay great attention to the delayed time hence the wrong data can be received in MATLAB
+	  // Since the Data is read roughly every 0.01 second this amount of delay is necessary for correct transmission
 	  HAL_Delay(10);
 
-//	  if(encoder_tick[0] - enc_temp >= 0)
-//	  {
-//		  enc_diff = encoder_tick[0] - enc_temp;
-//	  }
-//	  else
-//	  {
-//		  enc_diff = (48960 - enc_temp) + encoder_tick[0];
-//	  }
-//	  enc_temp = encoder_tick[0];
-	  // angular_velocity = enc_diff * (6000 / 48960)
+	  */
+
 
 
 //	  sprintf(MSG, "encoder ticks: %04d\t%04d\r\n", encoder_tick[0], encoder_tick[1]);
