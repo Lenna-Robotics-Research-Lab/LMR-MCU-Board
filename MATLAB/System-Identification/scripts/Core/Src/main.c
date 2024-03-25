@@ -65,7 +65,8 @@ uint16_t left_enc_temp = 0, right_enc_temp = 0 , right_enc_diff = 0, left_enc_di
 uint16_t encoder_tick[2] = {0};
 float angular_speed_left,angular_speed_right;
 uint16_t tst;
-uint8_t flag_tx = 0;
+
+uint8_t flag_tx = 0, pid_tim_flag = 0;
 
 // ####################   Motor struct Value Setting   ###################
 const motor_cfgType motor_right =
@@ -127,6 +128,7 @@ pid_cfgType pid_motor_left =
 	0,
 	0,
 	0,
+	0,
 	1
 };
 
@@ -138,6 +140,7 @@ pid_cfgType pid_motor_right =
 	Sampling_Time,
 	Lower_Saturation_Limit,
 	Upper_Saturation_Limit,
+	0,
 	0,
 	0,
 	0,
@@ -211,6 +214,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_TIM1_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
   LRL_Delay_Init();			// TIMER Initialization for Delay us
   LRL_US_Init(us_front); 	// TIMER Initialization for Ultrasonics
@@ -219,6 +223,8 @@ int main(void)
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
   HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
+//  HAL_TIM_Base_Init(&htim5);
+  HAL_TIM_Base_Start_IT(&htim5);
 
   //printf("Lenna Robotics Research Lab. \r\n");
   // HAL_Delay(1000);
@@ -238,10 +244,11 @@ int main(void)
 
  */
 
-  LRL_PID_Init(&pid_motor_left,1);
-  LRL_PID_Init(&pid_motor_right, 1	);
+  LRL_PID_Init(&pid_motor_left,  1);
+  LRL_PID_Init(&pid_motor_right, 1);
   /* USER CODE END 2 */
 
+  /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
@@ -263,52 +270,59 @@ int main(void)
 
 // ####################   Encoder Reading   ####################
 
-	  encoder_tick[0] = (TIM2->CNT); // Left Motor Encoder
-	  encoder_tick[1] = (TIM3->CNT); // Right Motor Encoder
-
-	  // Reading the Encoder for the right Motor
-
-	  if(encoder_tick[1] - right_enc_temp >= 0)
+	  if(pid_tim_flag == 1)
 	  {
-		  right_enc_diff = encoder_tick[1] - right_enc_temp;
-	  }
-	  else
-	  {
-		  right_enc_diff = (48960 - right_enc_temp) + encoder_tick[1];
-	  }
-	  right_enc_temp = encoder_tick[1];
+		  encoder_tick[0] = (TIM2->CNT); // Left Motor Encoder
+		  encoder_tick[1] = (TIM3->CNT); // Right Motor Encoder
 
-	  // Reading the Encoder for the left Motor
+		  // Reading the Encoder for the right Motor
 
-	  if(encoder_tick[0] - left_enc_temp >= 0)
-	  {
-		  left_enc_diff = encoder_tick[0] - left_enc_temp;
-	  }
-	  else
-	  {
-		  left_enc_diff = (48960 - left_enc_temp) + encoder_tick[0];
-	  }
-	  left_enc_temp = encoder_tick[0];
+		  if(encoder_tick[1] - right_enc_temp >= 0)
+		  {
+			  right_enc_diff = encoder_tick[1] - right_enc_temp;
+		  }
+		  else
+		  {
+			  right_enc_diff = (48960 - right_enc_temp) + encoder_tick[1];
+		  }
+		  right_enc_temp = encoder_tick[1];
+
+		  // Reading the Encoder for the left Motor
+
+		  if(encoder_tick[0] - left_enc_temp >= 0)
+		  {
+			  left_enc_diff = encoder_tick[0] - left_enc_temp;
+		  }
+		  else
+		  {
+			  left_enc_diff = (48960 - left_enc_temp) + encoder_tick[0];
+		  }
+		  left_enc_temp = encoder_tick[0];
 
 
 // ####################   PID control   ####################
 
 	 // The transmission of the encoder tick to angular velocity is (6000 / 48960)
+		  angular_speed_left = left_enc_diff * Tick2RMP_Rate * Speed2PWM_Rate * 0.97;
+		  angular_speed_right = right_enc_diff * Tick2RMP_Rate * Speed2PWM_Rate;
 
-	  angular_speed_left = left_enc_diff * Tick2RMP_Rate * Speed2PWM_Rate;
-	  angular_speed_right = right_enc_diff * Tick2RMP_Rate * Speed2PWM_Rate;
+		  LRL_PID_Update(&pid_motor_left,angular_speed_left,75);
+//		  LRL_Motor_Speed(motor_left, pid_motor_left.Control_Signal);
 
-	  LRL_PID_Update(&pid_motor_left,angular_speed_left,75);
-	  LRL_Motor_Speed(motor_left, pid_motor_left.Control_Signal);
+		  LRL_PID_Update(&pid_motor_right,angular_speed_right,75);
+//		  LRL_Motor_Speed(motor_right, pid_motor_right.Control_Signal);
+		  pid_tim_flag = 0;
+		//  HAL_GPIO_WritePin(BLINK_LED_PORT, BLINK_LED_PIN, 1);
+		  LRL_Motor_Speed(motor_left, pid_motor_left.Control_Signal);
+		  LRL_Motor_Speed(motor_right, pid_motor_right.Control_Signal);
+	  }
 
-	  LRL_PID_Update(&pid_motor_right,angular_speed_right,75);
-	  LRL_Motor_Speed(motor_right, pid_motor_right.Control_Signal);
 	  //tst = (uint16_t)angular_speed;
 	  //HAL_UART_Transmit(&huart1, (uint8_t *)&angular_speed, sizeof(angular_speed),10);
+	 // HAL_GPIO_WritePin(BLINK_LED_PORT, BLINK_LED_PIN, 0);
 
 
-
-	  HAL_Delay(10);
+	  //HAL_Delay(10);
 // ####################   Transmit Speed for MATLAB Identification   ####################
 	  /*
 	  // Sending the speed that has been read from encoder only if there is a receiving data
@@ -393,26 +407,41 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+// ####################   Ultra Sonic Callback   ####################
+
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
 	// TIMER Input Capture Callback
 	LRL_US_TMR_IC_ISR(htim, us_front);
 }
 
+// ####################   UART Receive Callback   ####################
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	HAL_UART_Receive_IT(&huart1,&input_speed, 1);
 	flag_tx = 1;
+}
+
+// ####################   Timer To Creat 0.01 Delay Callback   ####################
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
+	if(htim == &htim5)
+	{
+		pid_tim_flag = 1;
+	}
+
 }
 
 //void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
 //	//
 //}
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
-{
-	// TIMER Overflow Callback
-	LRL_US_TMR_OVF_ISR(htim, us_front);
-}
+//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+//{
+//	// TIMER Overflow Callback
+//	LRL_US_TMR_OVF_ISR(htim, us_front);
+//}
 
 /* USER CODE END 4 */
 

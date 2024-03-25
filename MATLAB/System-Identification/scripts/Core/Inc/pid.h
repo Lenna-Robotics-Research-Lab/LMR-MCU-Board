@@ -16,9 +16,10 @@ typedef struct
 	float Ki;
 	float Kd;
 	float Ts;
-	float Lower_Limit_Saturation;
-	float Upper_Limit_Saturation;
-	float Integrator_Amount;
+	int8_t Lower_Limit_Saturation;
+	int8_t Upper_Limit_Saturation;
+	int16_t Integrator_Amount;
+	int16_t Differentiator_Amount;
 	float Prev_Measurement;
 	float Prev_Error;
 	int8_t Control_Signal;

@@ -17,30 +17,15 @@ void LRL_PID_Update(pid_cfgType *pid_cfg,float measurement,float set_point)
 	{
 	float error = set_point - measurement;
 	// Setting Values
-	float P = pid_cfg->Kp * error;
-	pid_cfg->Integrator_Amount = pid_cfg->Integrator_Amount + (pid_cfg->Ts*(pid_cfg->Ki * (error + pid_cfg->Prev_Error)));
-	if(pid_cfg->Anti_windup_EN == 1)
-		{
-		if(pid_cfg->Integrator_Amount <= pid_cfg->Upper_Limit_Saturation)
-			{
-			pid_cfg->Integrator_Amount = pid_cfg->Integrator_Amount + (pid_cfg->Ts*(pid_cfg->Ki * (error + pid_cfg->Prev_Error)));
-			HAL_GPIO_WritePin(BLINK_LED_PORT, BLINK_LED_PIN, 1);
-			}
-		else
-			{
-			pid_cfg->Integrator_Amount = 0;
-			HAL_GPIO_WritePin(BLINK_LED_PORT, BLINK_LED_PIN, 0);
-			}
-		}
-	else
-		{
-		pid_cfg->Integrator_Amount = pid_cfg->Integrator_Amount + (pid_cfg->Ts*(pid_cfg->Ki * (error + pid_cfg->Prev_Error)));
-		//HAL_GPIO_WritePin(BLINK_LED_PORT, BLINK_LED_PIN, 1);
-		}
+//	float P = pid_cfg->Kp * error;
 
-	float I = pid_cfg->Integrator_Amount;
+	pid_cfg->Integrator_Amount += (pid_cfg->Ts*(pid_cfg->Ki * (error + pid_cfg->Prev_Error)));
 
-	float D = (pid_cfg->Kd * (measurement - pid_cfg->Prev_Measurement))/(pid_cfg->Ts);
+
+
+//	float I = pid_cfg->Integrator_Amount;
+
+	pid_cfg->Differentiator_Amount = pid_cfg->Kd * (measurement - pid_cfg->Prev_Measurement)/(pid_cfg->Ts);
     /*
     // another way to use derivative term used by phils lab channel
    pid->differentiator = -(2.0f * pid->Kd * (measurement - pid->prevMeasurement)
@@ -48,7 +33,28 @@ void LRL_PID_Update(pid_cfgType *pid_cfg,float measurement,float set_point)
                         / (2.0f * pid->tau + pid->T);
      */
 
-	pid_cfg->Control_Signal = P + I + D;
+	pid_cfg->Control_Signal = (pid_cfg->Kp * error) + pid_cfg->Integrator_Amount + pid_cfg->Differentiator_Amount;
+
+	if(pid_cfg->Anti_windup_EN == 1)
+		{
+		if(pid_cfg->Control_Signal <= Upper_Saturation_Limit)
+			{
+			pid_cfg->Integrator_Amount += (pid_cfg->Ts*(pid_cfg->Ki * (error + pid_cfg->Prev_Error)));
+			HAL_GPIO_WritePin(BLINK_LED_PORT, BLINK_LED_PIN, 1);
+			}
+		else
+			{
+			pid_cfg->Integrator_Amount = 65;
+			HAL_GPIO_WritePin(BLINK_LED_PORT, BLINK_LED_PIN, 0);
+			}
+		}
+	else
+		{
+		pid_cfg->Integrator_Amount += (pid_cfg->Ts*(pid_cfg->Ki * (error + pid_cfg->Prev_Error)));
+		//HAL_GPIO_WritePin(BLINK_LED_PORT, BLINK_LED_PIN, 1);
+		}
+
+	pid_cfg->Control_Signal = (pid_cfg->Kp * error) + pid_cfg->Integrator_Amount + pid_cfg->Differentiator_Amount;
 
 	if(pid_cfg->Control_Signal > pid_cfg->Upper_Limit_Saturation)
 	  {

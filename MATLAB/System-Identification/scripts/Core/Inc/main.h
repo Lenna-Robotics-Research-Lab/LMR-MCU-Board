@@ -135,7 +135,7 @@ void Error_Handler(void);
 #define Derivative_Gain_RIGHT_MOTOR 0.01
 
 #define Upper_Saturation_Limit 100
-#define Lower_Saturation_Limit 40
+#define Lower_Saturation_Limit 0
 
 #define Sampling_Time 0.01
 
