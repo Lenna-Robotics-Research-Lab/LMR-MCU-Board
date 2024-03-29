@@ -58,7 +58,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-char MSG[64];
+uint8_t MSG[64];
 
 uint8_t input_speed ;// step given by MATLAB code
 uint16_t left_enc_temp = 0, right_enc_temp = 0 , right_enc_diff = 0, left_enc_diff = 0;
@@ -129,7 +129,9 @@ pid_cfgType pid_motor_left =
 	0,
 	0,
 	0,
-	1
+	1,
+	0,
+	0
 };
 
 pid_cfgType pid_motor_right =
@@ -145,7 +147,9 @@ pid_cfgType pid_motor_right =
 	0,
 	0,
 	0,
-	1
+	1,
+	0,
+	0
 };
 
 
@@ -302,27 +306,25 @@ int main(void)
 
 // ####################   PID control   ####################
 
-	 // The transmission of the encoder tick to angular velocity is (6000 / 48960)
-		  angular_speed_left = left_enc_diff * Tick2RMP_Rate * Speed2PWM_Rate * 0.97;
-		  angular_speed_right = right_enc_diff * Tick2RMP_Rate * Speed2PWM_Rate;
+// The transmission of the encoder tick to angular velocity is (6000 / 48960)
 
-		  LRL_PID_Update(&pid_motor_left,angular_speed_left,75);
+		  angular_speed_left = left_enc_diff * Tick2RMP_Rate /* Speed2PWM_Rate*/;
+		  angular_speed_right = right_enc_diff * Tick2RMP_Rate /* Speed2PWM_Rate*/;
+
+		  LRL_PID_Update(&pid_motor_left,angular_speed_left,190);
 //		  LRL_Motor_Speed(motor_left, pid_motor_left.Control_Signal);
 
-		  LRL_PID_Update(&pid_motor_right,angular_speed_right,75);
+		  LRL_PID_Update(&pid_motor_right,angular_speed_right,190);
 //		  LRL_Motor_Speed(motor_right, pid_motor_right.Control_Signal);
 		  pid_tim_flag = 0;
-		//  HAL_GPIO_WritePin(BLINK_LED_PORT, BLINK_LED_PIN, 1);
+//		  HAL_GPIO_WritePin(BLINK_LED_PORT, BLINK_LED_PIN, 1);
 		  LRL_Motor_Speed(motor_left, pid_motor_left.Control_Signal);
 		  LRL_Motor_Speed(motor_right, pid_motor_right.Control_Signal);
+		  sprintf(MSG,"the speed is : %5.1f\t%d\t%5.1f\t%5.1f\r\n ",angular_speed_right,pid_motor_right.Control_Signal,pid_motor_right.Prev_Error,pid_motor_right.Integrator_Amount);
+		  HAL_UART_Transmit_IT(&huart1,/*(uint8_t *)&angular_speed_left*/MSG, 64);
 	  }
 
-	  //tst = (uint16_t)angular_speed;
-	  //HAL_UART_Transmit(&huart1, (uint8_t *)&angular_speed, sizeof(angular_speed),10);
-	 // HAL_GPIO_WritePin(BLINK_LED_PORT, BLINK_LED_PIN, 0);
 
-
-	  //HAL_Delay(10);
 // ####################   Transmit Speed for MATLAB Identification   ####################
 	  /*
 	  // Sending the speed that has been read from encoder only if there is a receiving data

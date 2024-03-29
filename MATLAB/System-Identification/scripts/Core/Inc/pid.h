@@ -9,6 +9,8 @@
 #define INC_PID_H_
 
 #include "stm32f4xx_hal.h"
+#include "stdbool.h"
+
 
 typedef struct
 	{
@@ -18,13 +20,14 @@ typedef struct
 	float Ts;
 	int8_t Lower_Limit_Saturation;
 	int8_t Upper_Limit_Saturation;
-	int16_t Integrator_Amount;
-	int16_t Differentiator_Amount;
+	float Integrator_Amount;
+	float Differentiator_Amount;
 	float Prev_Measurement;
 	float Prev_Error;
-	int8_t Control_Signal;
+	uint8_t Control_Signal;
 	uint8_t Anti_windup_EN;
-
+	float Wind_Up_Amount;
+	float Error;
 	}pid_cfgType;
 
 void LRL_PID_Init(pid_cfgType *pid_cfg,uint8_t AntiWindup);

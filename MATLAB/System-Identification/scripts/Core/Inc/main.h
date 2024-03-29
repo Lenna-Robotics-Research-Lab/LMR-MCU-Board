@@ -123,7 +123,7 @@ void Error_Handler(void);
 // for more information visit Lenna Robotics LRL_LMR_V1.1 github page
 
 
-#define Speed2PWM_Rate 75/190
+#define Speed2PWM_Rate 75/218
 #define Tick2RMP_Rate 6000/48960
 
 #define Proportional_Gain_LEFT_MOTOR 1
