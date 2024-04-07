@@ -66,7 +66,7 @@ uint16_t encoder_tick[2] = {0};
 float angular_speed_left,angular_speed_right;
 uint16_t tst;
 
-uint8_t flag_tx = 0, pid_tim_flag = 0;
+uint8_t flag_tx = 0, pid_tim_flag = 0, dir_flag = 0;
 
 // ####################   Motor struct Value Setting   ###################
 const motor_cfgType motor_right =
@@ -280,29 +280,78 @@ int main(void)
 		  encoder_tick[1] = (TIM3->CNT); // Right Motor Encoder
 
 		  // Reading the Encoder for the right Motor
+//		  if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3))
+//		  {
+//			  if(encoder_tick[1] - right_enc_temp >= 0)
+//			  {
+////				  right_enc_diff = encoder_tick[1] - right_enc_temp;
+//				  right_enc_diff = (48960 + encoder_tick[1]) - right_enc_temp;
+//			  }
+//			  else
+//			  {
+////				  right_enc_diff = (48960 - right_enc_temp) + encoder_tick[1];
+//				  right_enc_diff = -(encoder_tick[1] - right_enc_temp);
+//			  }
+//			  right_enc_temp = encoder_tick[1];
 
-		  if(encoder_tick[1] - right_enc_temp >= 0)
+//		  }
+////		  else
+//		  {
+
+		  ;
+		  if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3) == 0)
 		  {
-			  right_enc_diff = encoder_tick[1] - right_enc_temp;
+			  if(encoder_tick[1] - right_enc_temp >= 0)
+			  {
+				  right_enc_diff = encoder_tick[1] - right_enc_temp;
+			  }
+			  else
+			  {
+				  right_enc_diff = (48960 - right_enc_temp) + encoder_tick[1];
+			  }
+			  right_enc_temp = encoder_tick[1];
 		  }
 		  else
 		  {
-			  right_enc_diff = (48960 - right_enc_temp) + encoder_tick[1];
+			  if(right_enc_temp - encoder_tick[1] >= 0)
+			  {
+				  right_enc_diff = -(encoder_tick[1] - right_enc_temp);
+			  }
+			  else
+			  {
+				  right_enc_diff = (48960 - encoder_tick[1]) + right_enc_temp;
+			  }
+			  right_enc_temp = encoder_tick[1];
 		  }
-		  right_enc_temp = encoder_tick[1];
+//		  }
 
-		  // Reading the Encoder for the left Motor
 
-		  if(encoder_tick[0] - left_enc_temp >= 0)
+			  // Reading the Encoder for the left Motor
+
+		  if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim2) == 0)
 		  {
-			  left_enc_diff = encoder_tick[0] - left_enc_temp;
+			  if(encoder_tick[0] - left_enc_temp >= 0)
+			  {
+				  left_enc_diff = encoder_tick[0] - left_enc_temp;
+			  }
+			  else
+			  {
+				  left_enc_diff = (48960 - left_enc_temp) + encoder_tick[0];
+			  }
+			  left_enc_temp = encoder_tick[0];
 		  }
 		  else
 		  {
-			  left_enc_diff = (48960 - left_enc_temp) + encoder_tick[0];
+			  if(left_enc_temp - encoder_tick[0] >= 0)
+			  {
+				  left_enc_diff = -(encoder_tick[0] - left_enc_temp);
+			  }
+			  else
+			  {
+				  left_enc_diff = (48960 - encoder_tick[0]) + left_enc_temp;
+			  }
+			  left_enc_temp = encoder_tick[0];
 		  }
-		  left_enc_temp = encoder_tick[0];
-
 
 // ####################   PID control   ####################
 
@@ -311,16 +360,16 @@ int main(void)
 		  angular_speed_left = left_enc_diff * Tick2RMP_Rate /* Speed2PWM_Rate*/;
 		  angular_speed_right = right_enc_diff * Tick2RMP_Rate /* Speed2PWM_Rate*/;
 
-		  LRL_PID_Update(&pid_motor_left,angular_speed_left,190);
+		  LRL_PID_Update(&pid_motor_left,angular_speed_left,120);
 //		  LRL_Motor_Speed(motor_left, pid_motor_left.Control_Signal);
 
-		  LRL_PID_Update(&pid_motor_right,angular_speed_right,190);
+		  LRL_PID_Update(&pid_motor_right,angular_speed_right,120);
 //		  LRL_Motor_Speed(motor_right, pid_motor_right.Control_Signal);
 		  pid_tim_flag = 0;
 //		  HAL_GPIO_WritePin(BLINK_LED_PORT, BLINK_LED_PIN, 1);
 		  LRL_Motor_Speed(motor_left, pid_motor_left.Control_Signal);
 		  LRL_Motor_Speed(motor_right, pid_motor_right.Control_Signal);
-		  sprintf(MSG,"the speed is : %5.1f\t%d\t%5.1f\t%5.1f\r\n ",angular_speed_right,pid_motor_right.Control_Signal,pid_motor_right.Prev_Error,pid_motor_right.Integrator_Amount);
+		  sprintf(MSG,"the speed is : %5.1f\t%d\t%5.1f\t%5.1f\r\n ",angular_speed_left,pid_motor_left.Control_Signal,pid_motor_left.Prev_Error,pid_motor_left.Integrator_Amount);
 		  HAL_UART_Transmit_IT(&huart1,/*(uint8_t *)&angular_speed_left*/MSG, 64);
 	  }
 
