@@ -36,6 +36,8 @@
 #include "utilities.h"
 #include "motion.h"
 #include "pid.h"
+#include "imu.h"
+//#include "mpu6050.h"
 
 
 /* USER CODE END Includes */
@@ -67,6 +69,8 @@ float angular_speed_left,angular_speed_right;
 uint16_t tst;
 
 uint8_t flag_tx = 0, pid_tim_flag = 0, dir_flag = 0;
+
+
 
 // ####################   Motor struct Value Setting   ###################
 const motor_cfgType motor_right =
@@ -152,7 +156,15 @@ pid_cfgType pid_motor_right =
 	0
 };
 
+// ####################   IMU struct Value Setting   ###################
 
+imu_cfgType gy80=
+{
+	&hi2c3,
+	0,
+	0,
+	0
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -229,6 +241,7 @@ int main(void)
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
 //  HAL_TIM_Base_Init(&htim5);
   HAL_TIM_Base_Start_IT(&htim5);
+  HAL_I2C_Init(&hi2c3);
 
   //printf("Lenna Robotics Research Lab. \r\n");
   // HAL_Delay(1000);
@@ -250,12 +263,44 @@ int main(void)
 
   LRL_PID_Init(&pid_motor_left,  1);
   LRL_PID_Init(&pid_motor_right, 1);
+  LRL_MPU_Init(&gy80);
+
+  //uint8_t tstt[3];
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+// ####################   imu setup  ####################
+//	  LRL_ACCEL_Read(&gy80);
+	  uint8_t data[6];
+	  int16_t mytst[3];
+
+//	  MPU6050_Read_All(&hi2c3, &gy80);
+	  LRL_Read_Gyro(&gy80);
+	  LRL_Read_Accel(&gy80);
+
+	  static uint32_t prev_time = 0;
+	  uint32_t curr_time = HAL_GetTick();
+	  float dt = (curr_time - prev_time) / 1000.0f;
+	  prev_time = curr_time;
+
+	  complementary_filter(&gy80);
+//	  HAL_I2C_Mem_Read(&hi2c3, 0xD0, 0x75, 1, &data[0], 1,10);
+//	  HAL_I2C_Mem_Read(&hi2c3, GYRO_ADDR_R, 0x29, 1, &data[1], 1,10);
+//	  mytst[0] = ((data[1]<<8)|data[0]);
+//	  mytst[1] = ((data[3]<<8)|data[2]);
+//	  mytst[2] = ((data[5]<<8)|data[4]);
+
+
+//	  HAL_I2C_Mem_Read(&hi2c3,0xD3,0x0F,1,&myimu,1,100);
+//	  LRL_GY80_Init(&hi2c3,tstt);
+
+	  sprintf(MSG,"the speed is : %3.2f\t %3.2f\t %3.2f\n\r",gy80.roll,gy80.pitch,gy80.yaw);
+//	  sprintf(MSG,"the speed is : %d\n\r", data[0]);
+	  HAL_UART_Transmit(&huart1,MSG, 64,100);
+//	  HAL_Delay(1);
 
 // ####################   Motor Test Scenarios   ####################
 //	  LRL_Motion_Control(diff_robot, -100, 100);
@@ -273,7 +318,7 @@ int main(void)
 //	  LRL_Motor_Speed(motor_right, input_speed);
 
 // ####################   Encoder Reading   ####################
-
+/*
 	  if(pid_tim_flag == 1)
 	  {
 		  encoder_tick[0] = (TIM2->CNT); // Left Motor Encoder
@@ -353,12 +398,16 @@ int main(void)
 			  left_enc_temp = encoder_tick[0];
 		  }
 
+*/
 // ####################   PID control   ####################
+
+/*
+
 
 // The transmission of the encoder tick to angular velocity is (6000 / 48960)
 
-		  angular_speed_left = left_enc_diff * Tick2RMP_Rate /* Speed2PWM_Rate*/;
-		  angular_speed_right = right_enc_diff * Tick2RMP_Rate /* Speed2PWM_Rate*/;
+		  angular_speed_left = left_enc_diff * Tick2RMP_Rate ;//  *Speed2PWM_Rate;
+		  angular_speed_right = right_enc_diff * Tick2RMP_Rate // * Speed2PWM_Rate;
 
 		  LRL_PID_Update(&pid_motor_left,angular_speed_left,120);
 //		  LRL_Motor_Speed(motor_left, pid_motor_left.Control_Signal);
@@ -370,9 +419,9 @@ int main(void)
 		  LRL_Motor_Speed(motor_left, pid_motor_left.Control_Signal);
 		  LRL_Motor_Speed(motor_right, pid_motor_right.Control_Signal);
 		  sprintf(MSG,"the speed is : %5.1f\t%d\t%5.1f\t%5.1f\r\n ",angular_speed_left,pid_motor_left.Control_Signal,pid_motor_left.Prev_Error,pid_motor_left.Integrator_Amount);
-		  HAL_UART_Transmit_IT(&huart1,/*(uint8_t *)&angular_speed_left*/MSG, 64);
+		  HAL_UART_Transmit_IT(&huart1,MSG, 64);
 	  }
-
+*/
 
 // ####################   Transmit Speed for MATLAB Identification   ####################
 	  /*
@@ -484,6 +533,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 
 }
 
+// ####################   I2C Callback   ####################
+
+void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c){
+if(hi2c == &hi2c3)
+	{
+////		LRL_IMU_Read(&gy80);
+		HAL_GPIO_WritePin(BLINK_LED_PORT, BLINK_LED_PIN, 1);
+//	LRL_GYRO_Read(&gy80);
+	}
+}
 //void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
 //	//
 //}

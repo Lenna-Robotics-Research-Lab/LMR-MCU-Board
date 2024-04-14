@@ -117,28 +117,17 @@ void Error_Handler(void);
 #define TRIG_HC_2_GPIO_Port GPIOE
 /* USER CODE BEGIN Private defines */
 
-//=========================================== PID Values ========================================
 
-// these values are calculated using MATLAB Simulink motor identification file
-// for more information visit Lenna Robotics LRL_LMR_V1.1 github page
+//=========================================== Conversions ========================================
 
+// imu values
+
+#define rad2deg 57.2958
+
+// pid values
 
 #define Speed2PWM_Rate 75/218
 #define Tick2RMP_Rate 6000/48960
-
-#define Proportional_Gain_LEFT_MOTOR 1
-#define Integral_Gain_LEFT_MOTOR 3
-#define Derivative_Gain_LEFT_MOTOR 0.05
-
-#define Proportional_Gain_RIGHT_MOTOR 1.2
-#define Integral_Gain_RIGHT_MOTOR 3
-#define Derivative_Gain_RIGHT_MOTOR 0.01
-
-#define Upper_Saturation_Limit 100
-#define Lower_Saturation_Limit 0
-
-#define Sampling_Time 0.01
-
 
 /* USER CODE END Private defines */
 
