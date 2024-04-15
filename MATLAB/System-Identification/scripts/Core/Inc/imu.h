@@ -77,8 +77,8 @@ typedef struct
 void LRL_Read_Accel(imu_cfgType *imu);
 void LRL_Read_Gyro(imu_cfgType *imu);
 void LRL_MPU_Init(imu_cfgType *imu);
-void LRL_Kalman_Filter(imu_cfgType *imu);
-void complementary_filter(imu_cfgType *imu);
+//void LRL_Kalman_Filter(imu_cfgType *imu);
+void LRL_Complementary_Filter(imu_cfgType *imu);
 //
 ////=========================================== Gy-80 ========================================
 //

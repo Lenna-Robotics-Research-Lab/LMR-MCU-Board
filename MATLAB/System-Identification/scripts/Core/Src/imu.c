@@ -89,22 +89,11 @@ void LRL_Read_Gyro(imu_cfgType *imu)
 
 void LRL_MPU_Read_All(imu_cfgType *imu)
 {
-	uint8_t buf[14];
-
-	HAL_I2C_Mem_Read(imu->hi2c, MPU_ADDR, ACCEL_XOUT_H, 1,buf, 14,100);
-
-    imu->accel_x = buf[0] << 8 | buf[1];
-    imu->accel_y = buf[2] << 8 | buf[3];
-    imu->accel_z = buf[4] << 8 | buf[5];
-    // temperature = buf[6] << 8 | buf[7];
-    imu->gyro_x = buf[8] << 8 | buf[9];
-    imu->gyro_y = buf[10] << 8 | buf[11];
-    imu->gyro_z = buf[12] << 8 | buf[13];
-
-
+	LRL_Read_Accel(imu);
+	LRL_Read_Gyro(imu);
 }
 
-void complementary_filter(imu_cfgType *imu)
+void LRL_Complementary_Filter(imu_cfgType *imu)
 {
     static float prev_gyr_x = 0.0f, prev_gyr_y = 0.0f, prev_gyr_z = 0.0f;
     static float prev_acc_x = 0.0f, prev_acc_y = 0.0f, prev_acc_z = 0.0f;
