@@ -117,6 +117,18 @@ void Error_Handler(void);
 #define TRIG_HC_2_GPIO_Port GPIOE
 /* USER CODE BEGIN Private defines */
 
+
+//=========================================== Conversions ========================================
+
+// imu values
+
+#define rad2deg 57.2958
+
+// pid values
+
+#define Speed2PWM_Rate 75/218
+#define Tick2RMP_Rate 6000/48960
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

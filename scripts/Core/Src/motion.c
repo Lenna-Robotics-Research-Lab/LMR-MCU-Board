@@ -28,7 +28,7 @@ void LRL_Motor_Speed(motor_cfgType motor, int8_t duty_cycle)
 	bool dir;
 	uint32_t motor_pwm;
 
-	dir = (duty_cycle  >> 7) & 0x01;	// if MSB is 1 -> neg
+	dir = (duty_cycle >> 7) & 0x01;	// if MSB is 1 -> neg
 	duty_cycle = abs(duty_cycle);
 
 	motor_pwm = (uint32_t) ((motor.MAX_ARR * duty_cycle) / 100);
