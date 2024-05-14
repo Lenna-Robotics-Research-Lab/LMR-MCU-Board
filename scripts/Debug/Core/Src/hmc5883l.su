@@ -1,0 +1,2 @@
+../Core/Src/hmc5883l.c:16:6:HMC5883L_init	32	static
+../Core/Src/hmc5883l.c:40:6:HMC5883L_readHeading	56	static

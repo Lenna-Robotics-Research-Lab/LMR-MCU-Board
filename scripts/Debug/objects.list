@@ -1,6 +1,7 @@
 "./Core/Src/adc.o"
 "./Core/Src/eth.o"
 "./Core/Src/gpio.o"
+"./Core/Src/hmc5883l.o"
 "./Core/Src/i2c.o"
 "./Core/Src/imu.o"
 "./Core/Src/main.o"

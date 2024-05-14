@@ -37,6 +37,7 @@
 #include "motion.h"
 #include "pid.h"
 #include "imu.h"
+#include "hmc5883l.h"
 //#include "mpu6050.h"
 
 
@@ -60,7 +61,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint8_t MSG[64];
+char MSG[128];
 
 uint8_t input_speed ;// step given by MATLAB code
 uint16_t left_enc_temp = 0, right_enc_temp = 0 , right_enc_diff = 0, left_enc_diff = 0;
@@ -165,6 +166,11 @@ imu_cfgType gy80=
 	0,
 	0
 };
+
+int16_t val_x;
+int16_t val_y;
+int16_t val_z;
+float val_heading;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -265,6 +271,8 @@ int main(void)
   LRL_PID_Init(&pid_motor_right, 1);
   LRL_MPU_Init(&gy80);
 
+  HMC5883L_init(&hi2c3);
+uint8_t ident = 0;
   //uint8_t tstt[3];
   /* USER CODE END 2 */
 
@@ -272,6 +280,14 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+//		HAL_I2C_Master_Transmit(&hi2c3, HMC5883L_ADDRESS >> 1, 0x3D, 1, DELAY_TIMEOUT);
+//		HAL_I2C_Mem_Read(&hi2c3, HMC5883L_ADDRESS >> 1, 10, 1, &ident, 1, DELAY_TIMEOUT);
+//	  HAL_I2C_Mem_Read(&hi2c3, 0x3D, 10, 1, &val_x, 1, 100);
+//	  sprintf(MSG,"ident: %d\n\r", ident);
+
+//	  HAL_Delay(10);
+
 // ####################   imu setup  ####################
 //	  LRL_ACCEL_Read(&gy80);
 	  uint8_t data[6];
@@ -286,7 +302,7 @@ int main(void)
 	  float dt = (curr_time - prev_time) / 1000.0f;
 	  prev_time = curr_time;
 
-	  complementary_filter(&gy80);
+	  LRL_Complementary_Filter(&gy80);
 //	  HAL_I2C_Mem_Read(&hi2c3, 0xD0, 0x75, 1, &data[0], 1,10);
 //	  HAL_I2C_Mem_Read(&hi2c3, GYRO_ADDR_R, 0x29, 1, &data[1], 1,10);
 //	  mytst[0] = ((data[1]<<8)|data[0]);
@@ -296,8 +312,10 @@ int main(void)
 
 //	  HAL_I2C_Mem_Read(&hi2c3,0xD3,0x0F,1,&myimu,1,100);
 //	  LRL_GY80_Init(&hi2c3,tstt);
+	  HMC5883L_readHeading(&val_x, &val_y, &val_z, &val_heading);
 
-	  sprintf(MSG,"the speed is : %3.2f\t %3.2f\t %3.2f\n\r", gy80.roll, gy80.pitch, gy80.yaw);
+      sprintf(MSG,"the speed is : %3.2f\t %3.2f\t %3.2f\n\r", gy80.roll, gy80.pitch, gy80.yaw);
+//	  sprintf(MSG,"magnetometer heading: %4.2f\n\r", val_heading);
 //	  sprintf(MSG,"the speed is : %d\n\r", data[0]);
 	  HAL_UART_Transmit(&huart1,MSG, 64,100);
 //	  HAL_Delay(1);
