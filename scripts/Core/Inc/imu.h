@@ -5,8 +5,8 @@
 // *      Author: arian
 // */
 //
-//#ifndef INC_IMU_H_
-//#define INC_IMU_H_
+#ifndef INC_IMU_H_
+#define INC_IMU_H_
 //
 //
 
@@ -16,6 +16,8 @@
 #include "stm32f4xx_hal.h"
 
 #define WHO_AM_I 0x75
+#define INT_PIN_CFG 0x37
+#define USER_CTRL 0x6A
 #define PWR_MGMT_1 0x6B
 #define SMPLRT_DIV 0x19
 #define ACCEL_CONFIG 0x1C
@@ -79,6 +81,7 @@ void LRL_Read_Gyro(imu_cfgType *imu);
 void LRL_MPU_Init(imu_cfgType *imu);
 //void LRL_Kalman_Filter(imu_cfgType *imu);
 void LRL_Complementary_Filter(imu_cfgType *imu);
+void LRL_MPU_Bypass(imu_cfgType *imu);
 //
 ////=========================================== Gy-80 ========================================
 //
@@ -148,4 +151,4 @@ void LRL_Complementary_Filter(imu_cfgType *imu);
 ////void LRL_GYRO_Read(imu_cfgType *imu);
 ////
 ////
-////#endif /* INC_IMU_H_ */
+#endif /* INC_IMU_H_ */

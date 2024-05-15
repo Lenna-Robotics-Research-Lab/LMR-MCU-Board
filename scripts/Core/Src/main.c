@@ -271,8 +271,10 @@ int main(void)
   LRL_PID_Init(&pid_motor_right, 1);
   LRL_MPU_Init(&gy80);
 
+  LRL_MPU_Bypass(&gy80);
+
   HMC5883L_init(&hi2c3);
-uint8_t ident = 0;
+//uint8_t ident = 0;
   //uint8_t tstt[3];
   /* USER CODE END 2 */
 
@@ -290,19 +292,19 @@ uint8_t ident = 0;
 
 // ####################   imu setup  ####################
 //	  LRL_ACCEL_Read(&gy80);
-	  uint8_t data[6];
-	  int16_t mytst[3];
+//	  uint8_t data[6];
+//	  int16_t mytst[3];
 
 //	  MPU6050_Read_All(&hi2c3, &gy80);
-	  LRL_Read_Gyro(&gy80);
-	  LRL_Read_Accel(&gy80);
-
-	  static uint32_t prev_time = 0;
-	  uint32_t curr_time = HAL_GetTick();
-	  float dt = (curr_time - prev_time) / 1000.0f;
-	  prev_time = curr_time;
-
-	  LRL_Complementary_Filter(&gy80);
+//	  LRL_Read_Gyro(&gy80);
+//	  LRL_Read_Accel(&gy80);
+//
+//	  static uint32_t prev_time = 0;
+//	  uint32_t curr_time = HAL_GetTick();
+//	  float dt = (curr_time - prev_time) / 1000.0f;
+//	  prev_time = curr_time;
+//
+//	  LRL_Complementary_Filter(&gy80);
 //	  HAL_I2C_Mem_Read(&hi2c3, 0xD0, 0x75, 1, &data[0], 1,10);
 //	  HAL_I2C_Mem_Read(&hi2c3, GYRO_ADDR_R, 0x29, 1, &data[1], 1,10);
 //	  mytst[0] = ((data[1]<<8)|data[0]);
@@ -314,8 +316,8 @@ uint8_t ident = 0;
 //	  LRL_GY80_Init(&hi2c3,tstt);
 	  HMC5883L_readHeading(&val_x, &val_y, &val_z, &val_heading);
 
-      sprintf(MSG,"the speed is : %3.2f\t %3.2f\t %3.2f\n\r", gy80.roll, gy80.pitch, gy80.yaw);
-//	  sprintf(MSG,"magnetometer heading: %4.2f\n\r", val_heading);
+//      sprintf(MSG,"the speed is : %3.2f\t %3.2f\t %3.2f\n\r", gy80.roll, gy80.pitch, gy80.yaw);
+	  sprintf(MSG,"magnetometer heading: %4.2f\n\r", val_heading);
 //	  sprintf(MSG,"the speed is : %d\n\r", data[0]);
 	  HAL_UART_Transmit(&huart1,MSG, 64,100);
 //	  HAL_Delay(1);

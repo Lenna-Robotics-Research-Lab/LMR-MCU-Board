@@ -93,6 +93,18 @@ void LRL_MPU_Read_All(imu_cfgType *imu)
 	LRL_Read_Gyro(imu);
 }
 
+void LRL_MPU_Bypass(imu_cfgType *imu)
+{
+    uint8_t Data;
+
+    Data = 0x00;
+    HAL_I2C_Mem_Write(imu->hi2c, MPU_ADDR, USER_CTRL, 1, &Data, 1, 10);
+    Data = 0x02;
+    HAL_I2C_Mem_Write(imu->hi2c, MPU_ADDR, INT_PIN_CFG, 1, &Data, 1, 10);
+    Data = 0x00;
+    HAL_I2C_Mem_Write(imu->hi2c, MPU_ADDR, PWR_MGMT_1, 1, &Data, 1, 10);
+}
+
 void LRL_Complementary_Filter(imu_cfgType *imu)
 {
     static float prev_gyr_x = 0.0f, prev_gyr_y = 0.0f, prev_gyr_z = 0.0f;
