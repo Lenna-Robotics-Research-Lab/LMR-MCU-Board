@@ -86,6 +86,6 @@
 
 void HMC5883L_init(I2C_HandleTypeDef *hi2c);
 void HMC5883L_readHeading(int16_t *x, int16_t *y, int16_t *z, float *headingDegrees);
-
+float HMC5883L_Set_Declination(int16_t declination_degs , int16_t declination_mins, char declination_dir);
 
 #endif /* INC_HMC5883L_H_ */
