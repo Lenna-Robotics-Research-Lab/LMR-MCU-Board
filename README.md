@@ -2,7 +2,9 @@
 
 ## LMR Bardia Board ##
 
-Bardia Board is the MCU board designed as an open-source hardware, by Lenna Robotics Lab as the MCU board for the LMR v1.1. Some highlights on the board are listed below:
+Bardia Board is the MCU board designed as an open-source hardware, by Lenna Robotics Lab as the MCU board for the LMR v1.1.
+![Alt text]("C:\Users\arian\OneDrive\Desktop\Lenna\Altium\board_image.jpg")
+Some highlights on the board are listed below:
 
 1. STM32F407VGT6 ARM Microcontroller 
 2. Ethernet Support (DP83848 Physical Layer) 
