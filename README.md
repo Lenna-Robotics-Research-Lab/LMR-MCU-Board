@@ -22,8 +22,8 @@ Some highlights on the board are listed below:
 ## Microcontroller 
 
 <p align="justify">
-The microcontroller unit (MCU) is a critical component in the design, as it serves as the central processing unit for the robot. Selecting the right MCU was crucial, and our primary considerations were the available peripherals and their compatibility with various subsystems of the robot, as well as the local availability of the MCU in our region.
-
+The microcontroller unit (MCU) is a critical component in the design, as it serves as the central processing unit for the robot. Selecting the right MCU was crucial, and our primary considerations were the available peripherals and their compatibility with various subsystems of the robot, as well as the local availability of the MCU in our region.<p>
+<p align="justify">
 After careful evaluation, STM32F407VGT6 was chosen as the MCU for this project. This powerful microcontroller offers a wealth of features that make it an ideal choice, including multiple of each communication protocols like I2C, SPI, and UART, as well as Ethernet support. Moreover, its affordability and widespread availability further solidified its suitability for this project's requirements. <p>
 
 
