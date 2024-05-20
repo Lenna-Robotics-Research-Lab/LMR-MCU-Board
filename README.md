@@ -2,7 +2,7 @@
 
 ## LMR Bardia Board ##
 
-The Bardia Board, designed as an open-source hardware by Lenna Robotics Lab, is the MCU board for the LMR v1.1.
+The Bardia Board, designed as an open-source hardware by Lenna Robotics Lab, is the MCU board for the LMR v1.1. The Schematics and PCB of this board is free to use under open-source licensing. 
 
 ![Alt text](https://github.com/Lenna-Robotics-Research-Lab/LMR-MCU-Board/blob/main/images/Lenna_Board_2.png "LMR v1.1 Bardia Board")
 </br>
@@ -17,4 +17,5 @@ Some highlights on the board are listed below:
 6. Dedicated ADC for Reading Battery Level
 7. Dedicated Fan Slot  
 8. Ports(1x I2C Bus, 1x UART, 1x SPI, 1x CAN, 20x GPIO)
-9. Dedicated SRF-04 Ultrasonic Sensor Slot (4x)
+9. Dedicated SRF-04 Ultrasonic Sensor Slots (4x)
+ 
