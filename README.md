@@ -4,7 +4,7 @@
 
 The Bardia Board, designed as an open-source hardware by Lenna Robotics Lab, is the MCU board for the LMR v1.1. The Schematics and PCB of this board is free to use under open-source licensing. 
 
-![Alt text](https://github.com/Lenna-Robotics-Research-Lab/LMR-MCU-Board/blob/main/Documetns/images/Lenna_Board_2.png "LMR v1.1 Bardia Board")
+![Alt text](https://github.com/Lenna-Robotics-Research-Lab/LMR-MCU-Board/blob/main/Documents/images/Lenna_Board_2.png "LMR v1.1 Bardia Board")
 ![Alt text](https://github.com/Lenna-Robotics-Research-Lab/LMR-MCU-Board/blob/main/Documents/images/Lenna_Board_3.png "LMR v1.1 Bardia Board")
 </br>
 
@@ -48,6 +48,11 @@ The LMR Bardia Board features a USB type-B port, enabling direct connection to y
 <p align="justify">
 The LMR Bardia board supports Ethernet connectivity, although this feature remains unutilized in the robot's initial release.<p>
 
+## Power Management
+
+<p align="justify">
+This board can be powered up using either the 3 cell li-ion battery pack with integrated BMS which provides with total of 12.6V and 2200 mAh or the USB 5V when the motors are not needed. It is worth mentioning that with the utilization of the power management circuit, both power sources can be connected to the board at the same time.
+<p>
 
 # MCU Code
 
@@ -68,7 +73,7 @@ To carry out this part of the project STM32CubeIDE and MATLAB are facilitated. f
 ### System Identification 
 
 <p align="justify">
-First step is to calculate motor transfer function, a process carried out in MATLAB SIMULINK. This step is essential for the subsequent design of a controller that will facilitate the robot's ability to reach desired speeds. The preliminary code for this process can be accessed in the simulation branch, where the MATLAB files are also included. To establish a connection between the Microcontroller Unit (MCU) and the computer, The robots USB to Serial interface is utilized. The identification process was made possible through the use of MATLAB's SLDRT (Simulink Desktop Real-Time) tool.<p>
+First step is to calculate motor transfer function, a process carried out in MATLAB Simulink. This step is essential for the subsequent design of a controller that will facilitate the robot's ability to reach desired speeds. The preliminary code for this process can be accessed in the simulation branch, where the MATLAB files are also included. To establish a connection between the Microcontroller Unit (MCU) and the computer, The robots USB to Serial interface is utilized. The identification process was made possible through the use of MATLAB's SLDRT (Simulink Desktop Real-Time) tool.<p>
 
 ### Controller Design
 
@@ -76,4 +81,16 @@ First step is to calculate motor transfer function, a process carried out in MAT
 As it is evident the motors used on this robot while having the same part number (ZGA25) they would not necessarily behave the same given the same input. Hence design of a robust controller is of great importance in order to achieve the scope of this robot. For this robot a PID controller is tuned to make sure the speed of the motors match the given input speeds. Further details will be available in the documents of the project.
 <p>
 
+## Motion
 
+<p align="justify">
+A dedicated library is written for motion of the robot with different functions available to use and test the DC motors in different configurations. For reading motor speeds the integrated motor encoders are used in the STM32 encoder mode.  
+<p>
+
+## IMU 
+
+<p align="justify">
+For the Inertial Measurement Unit(IMU) the GY-87 module is used. this module utilizes I2C to connect to the board. The important feature of this module is that it uses a magnetometer alongside its MPU6050 on the same board which can be used by bypassing the said IMU sensor. This option provides a better reading in yaw direction which would have a drift in reading in a normal IMU. A dedicated IMU library is written for this module by Lenna Robotics Lab that can be found in imu.c and imu.h files.
+<p>
+
+## 
