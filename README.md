@@ -4,8 +4,8 @@
 
 The Bardia Board, designed as an open-source hardware by Lenna Robotics Lab, is the MCU board for the LMR v1.1. The Schematics and PCB of this board is free to use under open-source licensing. 
 
-![Alt text](https://github.com/Lenna-Robotics-Research-Lab/LMR-MCU-Board/blob/main/images/Lenna_Board_2.png "LMR v1.1 Bardia Board")
-![Alt text](https://github.com/Lenna-Robotics-Research-Lab/LMR-MCU-Board/blob/main/images/Lenna_Board_3.png "LMR v1.1 Bardia Board")
+![Alt text](https://github.com/Lenna-Robotics-Research-Lab/LMR-MCU-Board/blob/main/Documetns/images/Lenna_Board_2.png "LMR v1.1 Bardia Board")
+![Alt text](https://github.com/Lenna-Robotics-Research-Lab/LMR-MCU-Board/blob/main/Documents/images/Lenna_Board_3.png "LMR v1.1 Bardia Board")
 </br>
 
 Some highlights on the board are listed below:
@@ -51,20 +51,29 @@ The LMR Bardia board supports Ethernet connectivity, although this feature remai
 
 # MCU Code
 
-This Section contains code snippets and functions for the STM32F407 microcontroller.
+This Section is dedicated to provide a clearer view of the location and the purpose of the used functions and libraries.
+
+**NOTICE** : in the code files, functions that start with LRL are defined by Lenna Robotics Lab and their location will be explained in the documents 
 
 ## Board Layout 
 
-For a clearer comprehension of the board's pinout, please refer to the accompanying diagram, which illustrates the layout and pin assignments.
-![Alt text](https://github.com/Lenna-Robotics-Research-Lab/LMR-MCU-Board/blob/main/images/Board_layout.jpg "LMR v1.1 Pinout")
 
-## Motor System Identification
+For a clearer comprehension of the board's pinout, please refer to the accompanying diagram, which illustrates the layout and pin assignments.
+![Alt text](https://github.com/Lenna-Robotics-Research-Lab/LMR-MCU-Board/blob/main/Documents/images/Board_layout.jpg "LMR v1.1 Pinout")
+
+## Motor System Identification and Controller Design
+
+To carry out this part of the project STM32CubeIDE and MATLAB are facilitated. for further details on this section visit documentation on simulation and identification or the simulation folder.  
+
+### System Identification 
 
 <p align="justify">
-This section is dedicated to the identification of the motor's transfer function, a process carried out in MATLAB SIMULINK. This step is essential for the subsequent design of a controller that will facilitate the robot's ability to reach desired speeds. The preliminary code for this process can be accessed in the simulation branch, where the MATLAB files are also included. To establish a connection between the Microcontroller Unit (MCU) and the computer, The robots USB to Serial interface is utilized. The identification process was made possible through the use of MATLAB's SLDRT (Simulink Desktop Real-Time) tool.<p>
+First step is to calculate motor transfer function, a process carried out in MATLAB SIMULINK. This step is essential for the subsequent design of a controller that will facilitate the robot's ability to reach desired speeds. The preliminary code for this process can be accessed in the simulation branch, where the MATLAB files are also included. To establish a connection between the Microcontroller Unit (MCU) and the computer, The robots USB to Serial interface is utilized. The identification process was made possible through the use of MATLAB's SLDRT (Simulink Desktop Real-Time) tool.<p>
 
+### Controller Design
 
-
-
+<p align="justify">
+As it is evident the motors used on this robot while having the same part number (ZGA25) they would not necessarily behave the same given the same input. Hence design of a robust controller is of great importance in order to achieve the scope of this robot. For this robot a PID controller is tuned to make sure the speed of the motors match the given input speeds. Further details will be available in the documents of the project.
+<p>
 
 
