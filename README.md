@@ -93,4 +93,3 @@ A dedicated library is written for motion of the robot with different functions 
 For the Inertial Measurement Unit(IMU) the GY-87 module is used. this module utilizes I2C to connect to the board. The important feature of this module is that it uses a magnetometer alongside its MPU6050 on the same board which can be used by bypassing the said IMU sensor. This option provides a better reading in yaw direction which would have a drift in reading in a normal IMU. A dedicated IMU library is written for this module by Lenna Robotics Lab that can be found in imu.c and imu.h files.
 <p>
 
-## 
