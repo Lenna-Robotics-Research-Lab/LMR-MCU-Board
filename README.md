@@ -1,4 +1,4 @@
-# LMR Bardia MCU Board
+# LMR Bardia MCU Board Design
 
 ## Overview
 
@@ -49,7 +49,22 @@ The LMR Bardia Board features a USB type-B port, enabling direct connection to y
 The LMR Bardia board supports Ethernet connectivity, although this feature remains unutilized in the robot's initial release.<p>
 
 
-## 
+# MCU Code
+
+This Section contains code snippets and functions for the STM32F407 microcontroller.
+
+## Board Layout 
+
+For a clearer comprehension of the board's pinout, please refer to the accompanying diagram, which illustrates the layout and pin assignments.
+![Alt text](https://github.com/Lenna-Robotics-Research-Lab/LMR-MCU-Board/blob/main/images/Board_layout.jpg "LMR v1.1 Pinout")
+
+## Motor System Identification
+
+<p align="justify">
+This section is dedicated to the identification of the motor's transfer function, a process carried out in MATLAB SIMULINK. This step is essential for the subsequent design of a controller that will facilitate the robot's ability to reach desired speeds. The preliminary code for this process can be accessed in the simulation branch, where the MATLAB files are also included. To establish a connection between the Microcontroller Unit (MCU) and the computer, The robots USB to Serial interface is utilized. The identification process was made possible through the use of MATLAB's SLDRT (Simulink Desktop Real-Time) tool.<p>
+
+
+
 
 
 
