@@ -93,3 +93,8 @@ A dedicated library is written for motion of the robot with different functions 
 For the Inertial Measurement Unit(IMU) the GY-87 module is used. this module utilizes I2C to connect to the board. The important feature of this module is that it uses a magnetometer alongside its MPU6050 on the same board which can be used by bypassing the said IMU sensor. This option provides a better reading in yaw direction which would have a drift in reading in a normal IMU. A dedicated IMU library is written for this module by Lenna Robotics Lab that can be found in imu.c and imu.h files.
 <p>
 
+## Communication with Jetson Nano 
+<p align="justify">
+For the high level control of this robot, the Jetson Nano has been chosen due to its robust image processing and artificial intelligence capabilities. To bridge the high-level and low-level control systems, there is a dedicated slot that is compatible with the Jetson communication shield designed by LRL. The connection between the two boards can be established using various communication protocols such as SPI, I2C, or UART. In this particular version of the robot, UART has been selected as the communication protocol. A straightforward data communication protocol, designed by the LRL team, is utilized for this robot. The detailed explanation of this protocol can be found in the communication document.
+<p>
+
