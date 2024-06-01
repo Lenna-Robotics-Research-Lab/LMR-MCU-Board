@@ -36,47 +36,33 @@ void HMC5883L_init(I2C_HandleTypeDef *hi2c)
     _hi2c = hi2c;
 
     // write CONFIG_A register
-    _reg = 0x3C;
-	HAL_I2C_Master_Transmit(_hi2c, HMC5883L_ADDRESS, &_reg, 1, DELAY_TIMEOUT);
+	HAL_I2C_Master_Transmit(_hi2c, HMC5883L_ADDRESS, HMC5883L_ADDRESS_WRITE, 1, DELAY_TIMEOUT);
 	_reg = 0x10;
 	HAL_I2C_Mem_Write(_hi2c, HMC5883L_ADDRESS, HMC5883L_RA_CONFIG_A, 1, &_reg, 1, DELAY_TIMEOUT);
 
 	// write CONFIG_B register
-	_reg = 0x3C;
-	HAL_I2C_Master_Transmit(_hi2c, HMC5883L_ADDRESS, &_reg, 1, DELAY_TIMEOUT);
+	HAL_I2C_Master_Transmit(_hi2c, HMC5883L_ADDRESS, HMC5883L_ADDRESS_WRITE, 1, DELAY_TIMEOUT);
 	_reg = 0xE0;
 	HAL_I2C_Mem_Write(_hi2c, HMC5883L_ADDRESS, HMC5883L_RA_CONFIG_B, 1, &_reg, 1, DELAY_TIMEOUT);
 
 	// write MODE register
-	_reg = 0x3C;
-	HAL_I2C_Master_Transmit(_hi2c, HMC5883L_ADDRESS, &_reg, 1, DELAY_TIMEOUT);
-	_reg = 0x01;
-	HAL_I2C_Mem_Write(_hi2c, HMC5883L_ADDRESS, 0x02, 1, &_reg, 1, DELAY_TIMEOUT);
+	HAL_I2C_Master_Transmit(_hi2c, HMC5883L_ADDRESS, HMC5883L_ADDRESS_WRITE, 1, DELAY_TIMEOUT);
+	HAL_I2C_Mem_Write(_hi2c, HMC5883L_ADDRESS, HMC5883L_RA_MODE, 1, HMC5883L_MODE_SINGLE, 1, DELAY_TIMEOUT);
 
-	HAL_Delay(6);
+	HAL_Delay(10);
 }
 
 void HMC5883L_readHeading(int16_t *x, int16_t *y, int16_t *z, float *headingDegrees)
 {
-
-	// write MODE register
-	_reg = 0x3C;
-	HAL_I2C_Master_Transmit(_hi2c, HMC5883L_ADDRESS, &_reg, 1, DELAY_TIMEOUT);
-	_reg = 0x01;
-	HAL_I2C_Mem_Write(_hi2c, HMC5883L_ADDRESS, 0x02, 1, &_reg, 1, DELAY_TIMEOUT);
-	HAL_Delay(6);
-
-	_reg = 0x3D;
-	HAL_I2C_Master_Transmit(_hi2c, HMC5883L_ADDRESS, &_reg, 1, DELAY_TIMEOUT);
-	HAL_I2C_Mem_Read(_hi2c, HMC5883L_ADDRESS, 0x03, 1, (uint8_t *)&_buffer, 6, DELAY_TIMEOUT);
+	HAL_I2C_Master_Transmit(_hi2c, HMC5883L_ADDRESS, HMC5883L_ADDRESS_READ, 1, DELAY_TIMEOUT);
+	HAL_I2C_Mem_Read(_hi2c, HMC5883L_ADDRESS, HMC5883L_RA_DATAX_H, 1, (uint8_t *)&_buffer, 6, DELAY_TIMEOUT);
 
 	*x = (int16_t)((_buffer[0] << 8) | _buffer[1]);
 	*y = (int16_t)((_buffer[4] << 8) | _buffer[5]);
 	*z = (int16_t)((_buffer[2] << 8) | _buffer[3]);
 
-	heading = atan2(*x, *y);
-
-	heading += HMC5883L_Set_Declination(5, 3, 'E');
+	// Evaluate Heading and Correcting Declination (IRAN Coordinates)
+	heading = atan2(*x, *y) + MAGNETIC_DECLINATION;
 
 	// Correct for when signs are reversed.
     if(heading < 0)
