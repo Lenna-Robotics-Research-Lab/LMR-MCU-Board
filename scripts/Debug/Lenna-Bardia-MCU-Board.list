@@ -37,15 +37,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  16 .debug_ranges 00001518  00000000  00000000  00041ec8  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_macro  0002763e  00000000  00000000  000433e0  2**0
+ 17 .debug_macro  00027618  00000000  00000000  000433e0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_line   00020151  00000000  00000000  0006aa1e  2**0
+ 18 .debug_line   0001dcd3  00000000  00000000  0006a9f8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .debug_str    000e5a10  00000000  00000000  0008ab6f  2**0
+ 19 .debug_str    000e5a29  00000000  00000000  000886cb  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 20 .comment      00000050  00000000  00000000  0017057f  2**0
+ 20 .comment      00000050  00000000  00000000  0016e0f4  2**0
                   CONTENTS, READONLY
- 21 .debug_frame  00007540  00000000  00000000  001705d0  2**2
+ 21 .debug_frame  00007540  00000000  00000000  0016e144  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -3253,9 +3253,9 @@ int main(void)
  8001c80:	4814      	ldr	r0, [pc, #80]	; (8001cd4 <main+0x148>)
  8001c82:	f009 fb65 	bl	800b350 <siprintf>
 //	  sprintf(MSG,"the speed is : %d\n\r", data[0]);
-	  HAL_UART_Transmit(&huart1,MSG, 64,100);
+	  HAL_UART_Transmit(&huart1,MSG, sizeof(MSG),100);
  8001c86:	2364      	movs	r3, #100	; 0x64
- 8001c88:	2240      	movs	r2, #64	; 0x40
+ 8001c88:	2280      	movs	r2, #128	; 0x80
  8001c8a:	4912      	ldr	r1, [pc, #72]	; (8001cd4 <main+0x148>)
  8001c8c:	4812      	ldr	r0, [pc, #72]	; (8001cd8 <main+0x14c>)
  8001c8e:	f007 fc82 	bl	8009596 <HAL_UART_Transmit>
@@ -3554,8 +3554,8 @@ __STATIC_FORCEINLINE void __disable_irq(void)
  8001e68:	e7fe      	b.n	8001e68 <Error_Handler+0x8>
 
 08001e6a <LRL_PID_Init>:
+#include "pid.h"
 #include "main.h"
-#include "mcu_layout.h"
 
 
 void LRL_PID_Init(pid_cfgType *pid_cfg,uint8_t AntiWindup)

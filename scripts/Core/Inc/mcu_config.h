@@ -1,5 +1,5 @@
 /*
- * mcu_layout.h
+ * mcu_config.h
  *
  *  Created on: Oct 11, 2023
  *      Author: Lenna Robotics Research Laboratory
@@ -60,6 +60,17 @@
 #define US2_TRIG_PIN		GPIO_PIN_1
 #define US3_TRIG_PIN		GPIO_PIN_3
 #define US4_TRIG_PIN		GPIO_PIN_4
+
+//=========================================== Conversions ========================================
+
+// imu values
+
+#define rad2deg 57.2958
+
+// pid values
+
+#define Speed2PWM_Rate 75/218
+#define Tick2RMP_Rate 6000/48960
 
 #define ULTRASONIC_UNITS	4
 

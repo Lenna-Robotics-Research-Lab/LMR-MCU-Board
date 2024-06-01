@@ -6,7 +6,6 @@
 "./Core/Src/imu.o"
 "./Core/Src/main.o"
 "./Core/Src/motion.o"
-"./Core/Src/mpu6050.o"
 "./Core/Src/pid.o"
 "./Core/Src/spi.o"
 "./Core/Src/stm32f4xx_hal_msp.o"

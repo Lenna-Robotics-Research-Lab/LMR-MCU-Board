@@ -31,14 +31,13 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "stdbool.h"
-#include "mcu_layout.h"
 #include "ultrasonic.h"
 #include "utilities.h"
 #include "motion.h"
 #include "pid.h"
 #include "imu.h"
 #include "hmc5883l.h"
-//#include "mpu6050.h"
+#include "mcu_config.h"
 
 
 /* USER CODE END Includes */
@@ -319,7 +318,7 @@ int main(void)
 //      sprintf(MSG,"the speed is : %3.2f\t %3.2f\t %3.2f\n\r", gy80.roll, gy80.pitch, gy80.yaw);
 	  sprintf(MSG,"magnetometer heading: %4.2f\n\r", val_heading);
 //	  sprintf(MSG,"the speed is : %d\n\r", data[0]);
-	  HAL_UART_Transmit(&huart1,MSG, 64,100);
+	  HAL_UART_Transmit(&huart1,MSG, sizeof(MSG),100);
 //	  HAL_Delay(1);
 
 // ####################   Motor Test Scenarios   ####################

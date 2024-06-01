@@ -5,10 +5,10 @@
 // *      Author: arian
 // */
 //
-#include <math.h>
+#include "math.h"
+#include "mcu_config.h"
 #include "imu.h"
 #include "main.h"
-#include "mcu_layout.h"
 #include "i2c.h"
 #include "usart.h"
 
