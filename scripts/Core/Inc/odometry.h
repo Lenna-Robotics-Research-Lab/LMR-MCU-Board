@@ -87,6 +87,8 @@
 #define ACCEL_Y_CORRECTOR 16384
 #define ACCEL_Z_CORRECTOR 14418
 
+#define GYRO_CORRECTOR 	131.0
+
 // Complementary filter constants
 #define ALPHA 			0.9f
 
@@ -117,9 +119,9 @@ typedef struct
 
 typedef struct
 {
-	float	x;
-	float	y;
-	float	z;
+	int16_t	x;
+	int16_t	y;
+	int16_t	z;
 } gyroscope;
 
 typedef struct
@@ -162,5 +164,7 @@ void LRL_HMC5883L_ReadHeading(odom_cfgType * odom);
 void LRL_MPU6050_Init(odom_cfgType * odom);
 void LRL_MPU6050_ReadAccel(odom_cfgType * odom);
 void LRL_MPU6050_EnableBypass(odom_cfgType * odom, uint8_t enable);
+void LRL_MPU6050_ReadGyro(odom_cfgType *odom);
+void LRL_MPU6050_ReadAngle(odom_cfgType *odom);
 
 #endif /* INC_ODOMETRY_H_ */

@@ -17,6 +17,10 @@ float _mag_heading_temp;
 
 uint8_t _imu_addr_check;
 uint8_t _imu_buffer[6];
+float tmp_x,tmp_y,tmp_z;
+
+static float prev_gyr_x = 0.0f, prev_gyr_y = 0.0f, prev_gyr_z = 0.0f;
+static float prev_acc_x = 0.0f, prev_acc_y = 0.0f, prev_acc_z = 0.0f;
 
 // ####################  MAGNETOMETER HMC5883L  ####################
 
@@ -52,7 +56,7 @@ void LRL_HMC5883L_Init(odom_cfgType * odom)
 
 	// write MODE register
 	HAL_I2C_Master_Transmit(odom->hi2c, HMC5883L_ADDRESS, (uint8_t *)HMC5883L_ADDRESS_WRITE, 1, DELAY_TIMEOUT);
-	HAL_I2C_Mem_Write(odom->hi2c, HMC5883L_ADDRESS, HMC5883L_RA_MODE, 1, HMC5883L_MODE_SINGLE, 1, DELAY_TIMEOUT);
+	HAL_I2C_Mem_Write(odom->hi2c, HMC5883L_ADDRESS, HMC5883L_RA_MODE, 1, (uint8_t *)HMC5883L_MODE_SINGLE, 1, DELAY_TIMEOUT);
 
 	HAL_Delay(10);
 }
@@ -130,6 +134,65 @@ void LRL_MPU6050_ReadAccel(odom_cfgType * odom)
     odom->accel.x /= (ACCEL_X_CORRECTOR / FLOAT_SCALING);
     odom->accel.y /= (ACCEL_Y_CORRECTOR / FLOAT_SCALING);
     odom->accel.z /= (ACCEL_Z_CORRECTOR / FLOAT_SCALING);
+}
+
+void LRL_MPU6050_ReadGyro(odom_cfgType *odom)
+{
+	HAL_I2C_Mem_Read(odom->hi2c, MPU_ADDR, GYRO_XOUT_H, 1, (uint8_t *)_imu_buffer, 6, DELAY_TIMEOUT);
+
+	odom->gyro.x = (int16_t)(_imu_buffer[0] << 8 | _imu_buffer[1]);
+	odom->gyro.y = (int16_t)(_imu_buffer[2] << 8 | _imu_buffer[3]);
+	odom->gyro.z = (int16_t)(_imu_buffer[4] << 8 | _imu_buffer[5]);
+
+	odom->gyro.x /= (GYRO_CORRECTOR / FLOAT_SCALING);
+	odom->gyro.y /= (GYRO_CORRECTOR / FLOAT_SCALING);
+	odom->gyro.z /= (GYRO_CORRECTOR / FLOAT_SCALING);
+}
+
+void LRL_MPU6050_ReadAngle(odom_cfgType *odom)
+{
+
+
+    float dt = 0.01;
+
+    // Low-pass filter accelerometer data
+    tmp_x = ALPHA * prev_acc_x + (1 - ALPHA) * odom->accel.x;
+    tmp_y = ALPHA * prev_acc_y + (1 - ALPHA) * odom->accel.y;
+    tmp_z = ALPHA * prev_acc_z + (1 - ALPHA) * odom->accel.z;
+
+    // Normalize accelerometer data
+    float acc_norm = sqrtf(tmp_x * tmp_x + tmp_y * tmp_y + tmp_z * tmp_z);
+    tmp_x /= acc_norm;
+    tmp_y /= acc_norm;
+    tmp_z /= acc_norm;
+
+    // Update angle using accelerometer
+    float acc_angle_x = atan2f(tmp_y, tmp_z) * (180.0f / M_PI);
+    float acc_angle_y = atan2f(tmp_x, tmp_z) * (180.0f / M_PI);
+    float acc_angle_z = atan2f(tmp_y, tmp_x) * (180.0f / M_PI);
+
+    // Low-pass filter gyroscope data
+    float gyr_x_filtered = ALPHA * prev_gyr_x + (1 - ALPHA) * odom->gyro.x;
+    float gyr_y_filtered = ALPHA * prev_gyr_y + (1 - ALPHA) * odom->gyro.y;
+    float gyr_z_filtered = ALPHA * prev_gyr_z + (1 - ALPHA) * odom->gyro.z;
+
+    // Update angle using gyroscope
+    odom->angle.x = odom->angle.x + gyr_x_filtered * dt;
+    odom->angle.y = odom->angle.y - gyr_y_filtered * dt;
+    odom->angle.z = odom->angle.z + gyr_z_filtered * dt;
+
+    // Complementary filter
+    odom->angle.x = ALPHA * odom->angle.x + (1 - ALPHA) * acc_angle_x;
+    odom->angle.y = (ALPHA * odom->angle.y) - (1 - ALPHA) * acc_angle_y;
+    odom->angle.z = ALPHA * odom->angle.z + (1 - ALPHA) * acc_angle_z;
+
+    // Update previous values
+    prev_acc_x = tmp_x;
+    prev_acc_y = tmp_y;
+    prev_acc_z = tmp_z;
+    prev_gyr_x = gyr_x_filtered;
+    prev_gyr_y = gyr_y_filtered;
+    prev_gyr_z = gyr_z_filtered;
 }
 
 void LRL_MPU6050_EnableBypass(odom_cfgType * odom, uint8_t enable)

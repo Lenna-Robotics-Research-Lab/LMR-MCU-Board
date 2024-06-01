@@ -323,11 +323,14 @@ int main(void)
 //	  LRL_HMC5883L_ReadHeading(&odom);
 
 //      sprintf(MSG,"the speed is : %3.2f\t %3.2f\t %3.2f\n\r", gy80.roll, gy80.pitch, gy80.yaw);
+	  LRL_MPU6050_ReadGyro(&odom);
 	  LRL_MPU6050_ReadAccel(&odom);
-	  sprintf(MSG,"accel read: %04d \t %04d \t %04d \n\r", odom.accel.x, odom.accel.y, odom.accel.z);
+
+	  LRL_MPU6050_ReadAngle(&odom);
+	  sprintf(MSG,"accel read: %8.5f \t %8.5f\t %8.5f\n\r", odom.angle.x, odom.angle.y, odom.angle.z);
 //	  sprintf(MSG,"the speed is : %d\n\r", data[0]);
 	  HAL_UART_Transmit(&huart1,MSG, sizeof(MSG),100);
-//	  HAL_Delay(1);
+	  HAL_Delay(10);
 
 // ####################   Motor Test Scenarios   ####################
 //	  LRL_Motion_Control(diff_robot, -100, 100);
