@@ -35,10 +35,9 @@
 #include "utilities.h"
 #include "motion.h"
 #include "pid.h"
-#include "imu.h"
-#include "hmc5883l.h"
+//#include "imu.h"
 #include "mcu_config.h"
-
+#include "odometry.h"
 
 /* USER CODE END Includes */
 
@@ -70,7 +69,15 @@ uint16_t tst;
 
 uint8_t flag_tx = 0, pid_tim_flag = 0, dir_flag = 0;
 
+// ####################   ODOMETRY  ###################
 
+odom_cfgType odom =
+{
+	&hi2c3,
+	&htim2,
+	&htim3,
+	Tick2RPM_Rate
+};
 
 // ####################   Motor struct Value Setting   ###################
 const motor_cfgType motor_right =
@@ -81,8 +88,7 @@ const motor_cfgType motor_right =
 	MOTOR1_B_PIN,
 	&htim8,
 	TIM_CHANNEL_1,
-	1000,
-	//1
+	1000
 };
 const motor_cfgType motor_left =
 {
@@ -92,8 +98,7 @@ const motor_cfgType motor_left =
 	MOTOR2_B_PIN,
 	&htim8,
 	TIM_CHANNEL_2,
-	1000,
-	//-1
+	1000
 };
 
 // ####################   Ultra-Sonic struct Value Setting   ###################
@@ -158,13 +163,13 @@ pid_cfgType pid_motor_right =
 
 // ####################   IMU struct Value Setting   ###################
 
-imu_cfgType gy80=
-{
-	&hi2c3,
-	0,
-	0,
-	0
-};
+//imu_cfgType gy80=
+//{
+//	&hi2c3,
+//	0,
+//	0,
+//	0
+//};
 
 int16_t val_x;
 int16_t val_y;
@@ -268,11 +273,13 @@ int main(void)
 
   LRL_PID_Init(&pid_motor_left,  1);
   LRL_PID_Init(&pid_motor_right, 1);
-  LRL_MPU_Init(&gy80);
+  LRL_MPU6050_EnableBypass(&odom, 0);
+  LRL_MPU6050_Init(&odom);
+//  LRL_MPU_Init(&gy80);
 
-  LRL_MPU_Bypass(&gy80);
-
-  HMC5883L_init(&hi2c3);
+//  LRL_MPU_Bypass(&gy80);
+//
+//  LRL_HMC5883L_Init(&odom);
 //uint8_t ident = 0;
   //uint8_t tstt[3];
   /* USER CODE END 2 */
@@ -313,10 +320,11 @@ int main(void)
 
 //	  HAL_I2C_Mem_Read(&hi2c3,0xD3,0x0F,1,&myimu,1,100);
 //	  LRL_GY80_Init(&hi2c3,tstt);
-	  HMC5883L_readHeading(&val_x, &val_y, &val_z, &val_heading);
+//	  LRL_HMC5883L_ReadHeading(&odom);
 
 //      sprintf(MSG,"the speed is : %3.2f\t %3.2f\t %3.2f\n\r", gy80.roll, gy80.pitch, gy80.yaw);
-	  sprintf(MSG,"magnetometer heading: %4.2f\n\r", val_heading);
+	  LRL_MPU6050_ReadAccel(&odom);
+	  sprintf(MSG,"accel read: %04d \t %04d \t %04d \n\r", odom.accel.x, odom.accel.y, odom.accel.z);
 //	  sprintf(MSG,"the speed is : %d\n\r", data[0]);
 	  HAL_UART_Transmit(&huart1,MSG, sizeof(MSG),100);
 //	  HAL_Delay(1);
@@ -425,8 +433,8 @@ int main(void)
 
 // The transmission of the encoder tick to angular velocity is (6000 / 48960)
 
-		  angular_speed_left = left_enc_diff * Tick2RMP_Rate ;//  *Speed2PWM_Rate;
-		  angular_speed_right = right_enc_diff * Tick2RMP_Rate // * Speed2PWM_Rate;
+		  angular_speed_left = left_enc_diff * Tick2RPM_Rate ;//  *Speed2PWM_Rate;
+		  angular_speed_right = right_enc_diff * Tick2RPM_Rate // * Speed2PWM_Rate;
 
 		  LRL_PID_Update(&pid_motor_left,angular_speed_left,120);
 //		  LRL_Motor_Speed(motor_left, pid_motor_left.Control_Signal);

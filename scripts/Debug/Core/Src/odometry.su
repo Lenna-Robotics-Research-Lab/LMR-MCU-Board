@@ -1,0 +1,6 @@
+../Core/Src/odometry.c:25:7:LRL_HMC5883L_SetDeclination	24	static
+../Core/Src/odometry.c:41:6:LRL_HMC5883L_Init	32	static
+../Core/Src/odometry.c:60:6:LRL_HMC5883L_ReadHeading	40	static
+../Core/Src/odometry.c:88:6:LRL_MPU6050_Init	32	static
+../Core/Src/odometry.c:114:6:LRL_MPU6050_ReadAccel	32	static
+../Core/Src/odometry.c:135:6:LRL_MPU6050_EnableBypass	32	static

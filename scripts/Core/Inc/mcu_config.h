@@ -70,7 +70,7 @@
 // pid values
 
 #define Speed2PWM_Rate 75/218
-#define Tick2RMP_Rate 6000/48960
+#define Tick2RPM_Rate 6000/48960
 
 #define ULTRASONIC_UNITS	4
 
