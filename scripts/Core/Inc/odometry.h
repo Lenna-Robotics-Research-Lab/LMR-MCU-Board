@@ -13,10 +13,12 @@
 
 #include "i2c.h"
 #include "tim.h"
-#include <stdint.h>
 #include "stm32f4xx_hal.h"
+#include "stm32f4xx_hal_tim.h"
 
+// #################################################################
 // ####################  MAGNETOMETER HMC5883L  ####################
+// #################################################################
 #define HMC5883L_DEFAULT_ADDRESS    0x1E
 #define HMC5883L_ADDRESS            HMC5883L_DEFAULT_ADDRESS << 1
 #define HMC5883L_ADDRESS_WRITE      0x3C
@@ -69,7 +71,9 @@
 
 #define MAGNETIC_DECLINATION		0.0881
 
+// #######################################################
 // ####################  IMU MPU6050  ####################
+// #######################################################
 #define WHO_AM_I 		0x75
 #define INT_PIN_CFG 	0x37
 #define USER_CTRL 		0x6A
@@ -95,7 +99,9 @@
 #define DELAY_TIMEOUT	10
 #define FLOAT_SCALING	1000
 
-// ODOMETRY HANDLER
+// ############################################################
+// ####################  ODOMETRY STRUCTS  ####################
+// ############################################################
 typedef struct
 {
 	float	x;
@@ -140,12 +146,26 @@ typedef struct
 
 typedef struct
 {
+	uint16_t right_tick;
+	uint16_t left_tick;
+	uint16_t right_tick_prev;
+	uint16_t left_tick_prev;
+} encoder;
+
+typedef struct
+{
 	I2C_HandleTypeDef * hi2c;	// I2C Sensors e.g.  IMU, Magnetometer, etc.
 
-	TIM_HandleTypeDef * htim_enc_R;
-	TIM_HandleTypeDef * htim_enc_L;
+	TIM_HandleTypeDef * htim_ENC_R;
+	TIM_HandleTypeDef * htim_ENC_L;
 
-	float Tick2RPM;
+	uint16_t 			TIM_ENC_MAX_ARR;
+	float 				TICK2RPM;
+
+	uint16_t right_tick;
+	uint16_t left_tick;
+	uint16_t right_tick_prev;
+	uint16_t left_tick_prev;
 
 	linear_position 	pose;
 	angular_position 	angle;
@@ -155,8 +175,9 @@ typedef struct
 	motor_velocity 		vel;
 } odom_cfgType;
 
-// function prototypes
-
+// ##############################################################
+// ####################  FUNCTION PROTOTYPE  ####################
+// ##############################################################
 float LRL_HMC5883L_SetDeclination(int16_t declination_degs , int16_t declination_mins, char declination_dir);
 void LRL_HMC5883L_Init(odom_cfgType * odom);
 void LRL_HMC5883L_ReadHeading(odom_cfgType * odom);
@@ -165,6 +186,8 @@ void LRL_MPU6050_Init(odom_cfgType * odom);
 void LRL_MPU6050_ReadAccel(odom_cfgType * odom);
 void LRL_MPU6050_EnableBypass(odom_cfgType * odom, uint8_t enable);
 void LRL_MPU6050_ReadGyro(odom_cfgType *odom);
-void LRL_MPU6050_ReadAngle(odom_cfgType *odom);
+
+void LRL_Encoder_Init(odom_cfgType * odom);
+void LRL_Encoder_ReadAngularSpeed(odom_cfgType * odom);
 
 #endif /* INC_ODOMETRY_H_ */

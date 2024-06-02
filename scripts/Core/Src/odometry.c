@@ -19,13 +19,9 @@ uint8_t _imu_addr_check;
 uint8_t _imu_buffer[6];
 float tmp_x,tmp_y,tmp_z;
 
-static float prev_gyr_x = 0.0f, prev_gyr_y = 0.0f, prev_gyr_z = 0.0f;
-static float prev_acc_x = 0.0f, prev_acc_y = 0.0f, prev_acc_z = 0.0f;
-
-// ####################  MAGNETOMETER HMC5883L  ####################
-
-
-
+// ############################################################
+// ####################  HMC MAGNETOMETER  ####################
+// ############################################################
 float LRL_HMC5883L_SetDeclination(int16_t declination_degs , int16_t declination_mins, char declination_dir)
 {
 	int8_t _dir = 0;
@@ -88,7 +84,6 @@ void LRL_HMC5883L_ReadHeading(odom_cfgType * odom)
 // #######################################################
 // ####################  IMU MPU6050  ####################
 // #######################################################
-
 void LRL_MPU6050_Init(odom_cfgType * odom)
 {
     HAL_I2C_Mem_Read(odom->hi2c, MPU_ADDR, WHO_AM_I, 1, &_imu_addr_check, 1, DELAY_TIMEOUT);
@@ -149,52 +144,6 @@ void LRL_MPU6050_ReadGyro(odom_cfgType *odom)
 	odom->gyro.z /= (GYRO_CORRECTOR / FLOAT_SCALING);
 }
 
-void LRL_MPU6050_ReadAngle(odom_cfgType *odom)
-{
-
-
-    float dt = 0.01;
-
-    // Low-pass filter accelerometer data
-    tmp_x = ALPHA * prev_acc_x + (1 - ALPHA) * odom->accel.x;
-    tmp_y = ALPHA * prev_acc_y + (1 - ALPHA) * odom->accel.y;
-    tmp_z = ALPHA * prev_acc_z + (1 - ALPHA) * odom->accel.z;
-
-    // Normalize accelerometer data
-    float acc_norm = sqrtf(tmp_x * tmp_x + tmp_y * tmp_y + tmp_z * tmp_z);
-    tmp_x /= acc_norm;
-    tmp_y /= acc_norm;
-    tmp_z /= acc_norm;
-
-    // Update angle using accelerometer
-    float acc_angle_x = atan2f(tmp_y, tmp_z) * (180.0f / M_PI);
-    float acc_angle_y = atan2f(tmp_x, tmp_z) * (180.0f / M_PI);
-    float acc_angle_z = atan2f(tmp_y, tmp_x) * (180.0f / M_PI);
-
-    // Low-pass filter gyroscope data
-    float gyr_x_filtered = ALPHA * prev_gyr_x + (1 - ALPHA) * odom->gyro.x;
-    float gyr_y_filtered = ALPHA * prev_gyr_y + (1 - ALPHA) * odom->gyro.y;
-    float gyr_z_filtered = ALPHA * prev_gyr_z + (1 - ALPHA) * odom->gyro.z;
-
-    // Update angle using gyroscope
-    odom->angle.x = odom->angle.x + gyr_x_filtered * dt;
-    odom->angle.y = odom->angle.y - gyr_y_filtered * dt;
-    odom->angle.z = odom->angle.z + gyr_z_filtered * dt;
-
-    // Complementary filter
-    odom->angle.x = ALPHA * odom->angle.x + (1 - ALPHA) * acc_angle_x;
-    odom->angle.y = (ALPHA * odom->angle.y) - (1 - ALPHA) * acc_angle_y;
-    odom->angle.z = ALPHA * odom->angle.z + (1 - ALPHA) * acc_angle_z;
-
-    // Update previous values
-    prev_acc_x = tmp_x;
-    prev_acc_y = tmp_y;
-    prev_acc_z = tmp_z;
-    prev_gyr_x = gyr_x_filtered;
-    prev_gyr_y = gyr_y_filtered;
-    prev_gyr_z = gyr_z_filtered;
-}
-
 void LRL_MPU6050_EnableBypass(odom_cfgType * odom, uint8_t enable)
 {
 	_i2c_reg_data = 0x00;
@@ -203,4 +152,76 @@ void LRL_MPU6050_EnableBypass(odom_cfgType * odom, uint8_t enable)
 	HAL_I2C_Mem_Write(odom->hi2c, MPU_ADDR, INT_PIN_CFG, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
 	_i2c_reg_data = 0x00;
 	HAL_I2C_Mem_Write(odom->hi2c, MPU_ADDR, PWR_MGMT_1, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
+}
+
+// #########################################################
+// ####################  MOTOR ENCODER  ####################
+// #########################################################
+void LRL_Encoder_Init(odom_cfgType * odom)
+{
+	__HAL_TIM_SET_COUNTER(odom->htim_ENC_R, 0);
+	__HAL_TIM_SET_COUNTER(odom->htim_ENC_L, 0);
+
+	odom->right_tick = 0;
+	odom->left_tick = 0;
+	odom->right_tick_prev = 0;
+	odom->left_tick_prev = 0;
+}
+
+void LRL_Encoder_ReadAngularSpeed(odom_cfgType * odom)
+{
+	odom->right_tick = __HAL_TIM_GET_COUNTER(odom->htim_ENC_R);
+	odom->left_tick = __HAL_TIM_GET_COUNTER(odom->htim_ENC_L);
+
+	if(__HAL_TIM_IS_TIM_COUNTING_DOWN(odom->htim_ENC_R) == 0)
+	{
+	  if(odom->right_tick - odom->right_tick_prev >= 0)
+	  {
+		  odom->vel.right = odom->right_tick - odom->right_tick_prev;
+	  }
+	  else
+	  {
+		  odom->vel.right = (odom->TIM_ENC_MAX_ARR - odom->right_tick_prev) + odom->right_tick;
+	  }
+	}
+	else
+	{
+	  if(odom->right_tick_prev - odom->right_tick >= 0)
+	  {
+		  odom->vel.right = -(odom->right_tick - odom->right_tick_prev);
+	  }
+	  else
+	  {
+		  odom->vel.right = (odom->TIM_ENC_MAX_ARR - odom->right_tick) + odom->right_tick_prev;
+	  }
+	}
+
+	if(__HAL_TIM_IS_TIM_COUNTING_DOWN(odom->htim_ENC_L) == 0)
+	{
+	  if(odom->left_tick - odom->left_tick_prev >= 0)
+	  {
+		  odom->vel.left = odom->left_tick - odom->left_tick_prev;
+	  }
+	  else
+	  {
+		  odom->vel.left = (odom->TIM_ENC_MAX_ARR - odom->left_tick_prev) + odom->left_tick;
+	  }
+	}
+	else
+	{
+	  if(odom->left_tick_prev - odom->left_tick >= 0)
+	  {
+		  odom->vel.left = -(odom->left_tick - odom->left_tick_prev);
+	  }
+	  else
+	  {
+		  odom->vel.left = (odom->TIM_ENC_MAX_ARR - odom->left_tick) + odom->left_tick_prev;
+	  }
+	}
+
+	odom->vel.right = odom->vel.right * odom->TICK2RPM;
+	odom->vel.left = odom->vel.left * odom->TICK2RPM;
+
+	odom->right_tick_prev = odom->right_tick;
+	odom->left_tick_prev = odom->left_tick;
 }

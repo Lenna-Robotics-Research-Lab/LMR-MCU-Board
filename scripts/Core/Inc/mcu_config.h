@@ -65,12 +65,12 @@
 
 // imu values
 
-#define rad2deg 57.2958
+#define rad2deg 57.2958f
 
 // pid values
 
-#define Speed2PWM_Rate 75/218
-#define Tick2RPM_Rate 6000/48960
+#define Speed2PWM_Rate (float)(75/218)
+#define Tick2RPM_Rate 0.1225
 
 #define ULTRASONIC_UNITS	4
 

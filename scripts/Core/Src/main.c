@@ -35,7 +35,6 @@
 #include "utilities.h"
 #include "motion.h"
 #include "pid.h"
-//#include "imu.h"
 #include "mcu_config.h"
 #include "odometry.h"
 
@@ -59,10 +58,11 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-char MSG[128];
+uint8_t MSG[128];
 
 uint8_t input_speed ;// step given by MATLAB code
-uint16_t left_enc_temp = 0, right_enc_temp = 0 , right_enc_diff = 0, left_enc_diff = 0;
+uint16_t left_enc_temp = 0, right_enc_temp = 0;
+int16_t right_enc_diff = 0, left_enc_diff = 0;
 uint16_t encoder_tick[2] = {0};
 float angular_speed_left,angular_speed_right;
 uint16_t tst;
@@ -74,9 +74,10 @@ uint8_t flag_tx = 0, pid_tim_flag = 0, dir_flag = 0;
 odom_cfgType odom =
 {
 	&hi2c3,
-	&htim2,
 	&htim3,
-	Tick2RPM_Rate
+	&htim2,
+	48960,
+	0.1225f		// 6000/48960
 };
 
 // ####################   Motor struct Value Setting   ###################
@@ -257,11 +258,11 @@ int main(void)
   // HAL_Delay(1000);
 
 // ####################   Encoder Initialization   ####################
-  TIM2->CNT = 0;
-  TIM3->CNT = 0;
-  encoder_tick[0] = (TIM2->CNT);
-  encoder_tick[1] = (TIM3->CNT);
-
+//  TIM2->CNT = 0;
+//  TIM3->CNT = 0;
+//  encoder_tick[0] = (TIM2->CNT);
+//  encoder_tick[1] = (TIM3->CNT);
+  LRL_Encoder_Init(&odom);
 // ####################   MATLAB Communication Initialization   ####################
 
  /*
@@ -271,10 +272,10 @@ int main(void)
 
  */
 
-  LRL_PID_Init(&pid_motor_left,  1);
-  LRL_PID_Init(&pid_motor_right, 1);
-  LRL_MPU6050_EnableBypass(&odom, 0);
-  LRL_MPU6050_Init(&odom);
+//  LRL_PID_Init(&pid_motor_left,  1);
+//  LRL_PID_Init(&pid_motor_right, 1);
+//  LRL_MPU6050_EnableBypass(&odom, 0);
+//  LRL_MPU6050_Init(&odom);
 //  LRL_MPU_Init(&gy80);
 
 //  LRL_MPU_Bypass(&gy80);
@@ -288,7 +289,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
+LRL_Encoder_ReadAngularSpeed(&odom);
 //		HAL_I2C_Master_Transmit(&hi2c3, HMC5883L_ADDRESS >> 1, 0x3D, 1, DELAY_TIMEOUT);
 //		HAL_I2C_Mem_Read(&hi2c3, HMC5883L_ADDRESS >> 1, 10, 1, &ident, 1, DELAY_TIMEOUT);
 //	  HAL_I2C_Mem_Read(&hi2c3, 0x3D, 10, 1, &val_x, 1, 100);
@@ -323,14 +324,10 @@ int main(void)
 //	  LRL_HMC5883L_ReadHeading(&odom);
 
 //      sprintf(MSG,"the speed is : %3.2f\t %3.2f\t %3.2f\n\r", gy80.roll, gy80.pitch, gy80.yaw);
-	  LRL_MPU6050_ReadGyro(&odom);
-	  LRL_MPU6050_ReadAccel(&odom);
+//	  LRL_MPU6050_ReadGyro(&odom);
+//	  LRL_MPU6050_ReadAccel(&odom);
 
-	  LRL_MPU6050_ReadAngle(&odom);
-	  sprintf(MSG,"accel read: %8.5f \t %8.5f\t %8.5f\n\r", odom.angle.x, odom.angle.y, odom.angle.z);
-//	  sprintf(MSG,"the speed is : %d\n\r", data[0]);
-	  HAL_UART_Transmit(&huart1,MSG, sizeof(MSG),100);
-	  HAL_Delay(10);
+
 
 // ####################   Motor Test Scenarios   ####################
 //	  LRL_Motion_Control(diff_robot, -100, 100);
@@ -348,97 +345,80 @@ int main(void)
 //	  LRL_Motor_Speed(motor_right, input_speed);
 
 // ####################   Encoder Reading   ####################
-/*
-	  if(pid_tim_flag == 1)
-	  {
-		  encoder_tick[0] = (TIM2->CNT); // Left Motor Encoder
-		  encoder_tick[1] = (TIM3->CNT); // Right Motor Encoder
 
-		  // Reading the Encoder for the right Motor
-//		  if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3))
+//	  if(pid_tim_flag == 1)
+//	  {
+//		  encoder_tick[0] = (TIM2->CNT); // Left Motor Encoder
+//		  encoder_tick[1] = (TIM3->CNT); // Right Motor Encoder
+
+//  		  encoder_tick[0] = __HAL_TIM_GET_COUNTER(&htim2); // Left Motor Encoder
+//  		  encoder_tick[1] = __HAL_TIM_GET_COUNTER(&htim3); // Right Motor Encoder
+//
+//		  if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3) == 0)
 //		  {
 //			  if(encoder_tick[1] - right_enc_temp >= 0)
 //			  {
-////				  right_enc_diff = encoder_tick[1] - right_enc_temp;
-//				  right_enc_diff = (48960 + encoder_tick[1]) - right_enc_temp;
+//				  right_enc_diff = (encoder_tick[1] - right_enc_temp);
 //			  }
 //			  else
 //			  {
-////				  right_enc_diff = (48960 - right_enc_temp) + encoder_tick[1];
-//				  right_enc_diff = -(encoder_tick[1] - right_enc_temp);
+//				  right_enc_diff = ((48960 - right_enc_temp) + encoder_tick[1]);
 //			  }
 //			  right_enc_temp = encoder_tick[1];
-
 //		  }
-////		  else
+//		  else
 //		  {
-
-		  ;
-		  if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3) == 0)
-		  {
-			  if(encoder_tick[1] - right_enc_temp >= 0)
-			  {
-				  right_enc_diff = encoder_tick[1] - right_enc_temp;
-			  }
-			  else
-			  {
-				  right_enc_diff = (48960 - right_enc_temp) + encoder_tick[1];
-			  }
-			  right_enc_temp = encoder_tick[1];
-		  }
-		  else
-		  {
-			  if(right_enc_temp - encoder_tick[1] >= 0)
-			  {
-				  right_enc_diff = -(encoder_tick[1] - right_enc_temp);
-			  }
-			  else
-			  {
-				  right_enc_diff = (48960 - encoder_tick[1]) + right_enc_temp;
-			  }
-			  right_enc_temp = encoder_tick[1];
-		  }
+//			  if(right_enc_temp - encoder_tick[1] >= 0)
+//			  {
+//				  right_enc_diff = -1*(-(encoder_tick[1] - right_enc_temp));
+//			  }
+//			  else
+//			  {
+//				  right_enc_diff = -1*((48960 - encoder_tick[1]) + right_enc_temp);
+//			  }
+//			  right_enc_temp = encoder_tick[1];
+//		  }
+//
+//		  if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim2) == 0)
+//		  {
+//			  if(encoder_tick[0] - left_enc_temp >= 0)
+//			  {
+//				  left_enc_diff = (encoder_tick[0] - left_enc_temp);
+//			  }
+//			  else
+//			  {
+//				  left_enc_diff = ((48960 - left_enc_temp) + encoder_tick[0]);
+//			  }
+//			  left_enc_temp = encoder_tick[0];
+//		  }
+//		  else
+//		  {
+//			  if(left_enc_temp - encoder_tick[0] >= 0)
+//			  {
+//				  left_enc_diff = -1*(-(encoder_tick[0] - left_enc_temp));
+//			  }
+//			  else
+//			  {
+//				  left_enc_diff = -1*((48960 - encoder_tick[0]) + left_enc_temp);
+//			  }
+//			  left_enc_temp = encoder_tick[0];
 //		  }
 
 
-			  // Reading the Encoder for the left Motor
-
-		  if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim2) == 0)
-		  {
-			  if(encoder_tick[0] - left_enc_temp >= 0)
-			  {
-				  left_enc_diff = encoder_tick[0] - left_enc_temp;
-			  }
-			  else
-			  {
-				  left_enc_diff = (48960 - left_enc_temp) + encoder_tick[0];
-			  }
-			  left_enc_temp = encoder_tick[0];
-		  }
-		  else
-		  {
-			  if(left_enc_temp - encoder_tick[0] >= 0)
-			  {
-				  left_enc_diff = -(encoder_tick[0] - left_enc_temp);
-			  }
-			  else
-			  {
-				  left_enc_diff = (48960 - encoder_tick[0]) + left_enc_temp;
-			  }
-			  left_enc_temp = encoder_tick[0];
-		  }
-
-*/
 // ####################   PID control   ####################
 
-/*
+
 
 
 // The transmission of the encoder tick to angular velocity is (6000 / 48960)
 
-		  angular_speed_left = left_enc_diff * Tick2RPM_Rate ;//  *Speed2PWM_Rate;
-		  angular_speed_right = right_enc_diff * Tick2RPM_Rate // * Speed2PWM_Rate;
+//		  angular_speed_left = left_enc_diff * Tick2RPM_Rate ;//  *Speed2PWM_Rate;
+//		  angular_speed_right = right_enc_diff * Tick2RPM_Rate; // * Speed2PWM_Rate;
 
+angular_speed_left = odom.vel.left;
+angular_speed_right = odom.vel.right;
+
+/*
 		  LRL_PID_Update(&pid_motor_left,angular_speed_left,120);
 //		  LRL_Motor_Speed(motor_left, pid_motor_left.Control_Signal);
 
@@ -467,7 +447,10 @@ int main(void)
 
 	  */
 
-
+		  sprintf(MSG,"%06.2f \t %06.2f \t %03d \t %03d  \t %03d \t %03d\r\n", angular_speed_right, angular_speed_left, odom.right_tick, odom.left_tick, odom.right_tick_prev, odom.left_tick_prev );
+	//	  sprintf(MSG,"the speed is : %d\n\r", data[0]);
+		  HAL_UART_Transmit(&huart1,MSG, sizeof(MSG),100);
+		  HAL_Delay(10);
 
 //	  sprintf(MSG, "encoder ticks: %04d\t%04d\r\n", encoder_tick[0], encoder_tick[1]);
 //	  printf(MSG);
