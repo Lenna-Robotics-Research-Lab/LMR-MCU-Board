@@ -140,32 +140,31 @@ typedef struct
 
 typedef struct
 {
-	float	right;
-	float	left;
+	uint16_t	right;
+	uint16_t	left;
 } motor_velocity;
 
 typedef struct
 {
-	uint16_t right_tick;
-	uint16_t left_tick;
-	uint16_t right_tick_prev;
-	uint16_t left_tick_prev;
-} encoder;
+	TIM_HandleTypeDef * htim;
+
+	uint16_t 			MAX_ARR;
+	float 				TICK2RPM;
+
+	uint16_t tick;
+	uint16_t tick_prev;
+} encoder_cfgType;
 
 typedef struct
 {
 	I2C_HandleTypeDef * hi2c;	// I2C Sensors e.g.  IMU, Magnetometer, etc.
+} imu_cfgType;
 
-	TIM_HandleTypeDef * htim_ENC_R;
-	TIM_HandleTypeDef * htim_ENC_L;
-
-	uint16_t 			TIM_ENC_MAX_ARR;
-	float 				TICK2RPM;
-
-	uint16_t right_tick;
-	uint16_t left_tick;
-	uint16_t right_tick_prev;
-	uint16_t left_tick_prev;
+typedef struct
+{
+	imu_cfgType 		imu;
+	encoder_cfgType		enc_right;
+	encoder_cfgType		enc_left;
 
 	linear_position 	pose;
 	angular_position 	angle;

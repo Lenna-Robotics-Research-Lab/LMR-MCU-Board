@@ -41,26 +41,26 @@ float LRL_HMC5883L_SetDeclination(int16_t declination_degs , int16_t declination
 void LRL_HMC5883L_Init(odom_cfgType * odom)
 {
     // write CONFIG_A register
-	HAL_I2C_Master_Transmit(odom->hi2c, HMC5883L_ADDRESS, (uint8_t *)HMC5883L_ADDRESS_WRITE, 1, DELAY_TIMEOUT);
+	HAL_I2C_Master_Transmit(odom->imu.hi2c, HMC5883L_ADDRESS, (uint8_t *)HMC5883L_ADDRESS_WRITE, 1, DELAY_TIMEOUT);
 	_i2c_reg_data = 0x10;
-	HAL_I2C_Mem_Write(odom->hi2c, HMC5883L_ADDRESS, HMC5883L_RA_CONFIG_A, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
+	HAL_I2C_Mem_Write(odom->imu.hi2c, HMC5883L_ADDRESS, HMC5883L_RA_CONFIG_A, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
 
 	// write CONFIG_B register
-	HAL_I2C_Master_Transmit(odom->hi2c, HMC5883L_ADDRESS, (uint8_t *)HMC5883L_ADDRESS_WRITE, 1, DELAY_TIMEOUT);
+	HAL_I2C_Master_Transmit(odom->imu.hi2c, HMC5883L_ADDRESS, (uint8_t *)HMC5883L_ADDRESS_WRITE, 1, DELAY_TIMEOUT);
 	_i2c_reg_data = 0xE0;
-	HAL_I2C_Mem_Write(odom->hi2c, HMC5883L_ADDRESS, HMC5883L_RA_CONFIG_B, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
+	HAL_I2C_Mem_Write(odom->imu.hi2c, HMC5883L_ADDRESS, HMC5883L_RA_CONFIG_B, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
 
 	// write MODE register
-	HAL_I2C_Master_Transmit(odom->hi2c, HMC5883L_ADDRESS, (uint8_t *)HMC5883L_ADDRESS_WRITE, 1, DELAY_TIMEOUT);
-	HAL_I2C_Mem_Write(odom->hi2c, HMC5883L_ADDRESS, HMC5883L_RA_MODE, 1, (uint8_t *)HMC5883L_MODE_SINGLE, 1, DELAY_TIMEOUT);
+	HAL_I2C_Master_Transmit(odom->imu.hi2c, HMC5883L_ADDRESS, (uint8_t *)HMC5883L_ADDRESS_WRITE, 1, DELAY_TIMEOUT);
+	HAL_I2C_Mem_Write(odom->imu.hi2c, HMC5883L_ADDRESS, HMC5883L_RA_MODE, 1, (uint8_t *)HMC5883L_MODE_SINGLE, 1, DELAY_TIMEOUT);
 
 	HAL_Delay(10);
 }
 
 void LRL_HMC5883L_ReadHeading(odom_cfgType * odom)
 {
-	HAL_I2C_Master_Transmit(odom->hi2c, HMC5883L_ADDRESS, (uint8_t *)HMC5883L_ADDRESS_READ, 1, DELAY_TIMEOUT);
-	HAL_I2C_Mem_Read(odom->hi2c, HMC5883L_ADDRESS, HMC5883L_RA_DATAX_H, 1, (uint8_t *)&_mag_buffer, 6, DELAY_TIMEOUT);
+	HAL_I2C_Master_Transmit(odom->imu.hi2c, HMC5883L_ADDRESS, (uint8_t *)HMC5883L_ADDRESS_READ, 1, DELAY_TIMEOUT);
+	HAL_I2C_Mem_Read(odom->imu.hi2c, HMC5883L_ADDRESS, HMC5883L_RA_DATAX_H, 1, (uint8_t *)&_mag_buffer, 6, DELAY_TIMEOUT);
 
 	odom->mag.x = (int16_t)((_mag_buffer[0] << 8) | _mag_buffer[1]);
 	odom->mag.y = (int16_t)((_mag_buffer[4] << 8) | _mag_buffer[5]);
@@ -86,34 +86,34 @@ void LRL_HMC5883L_ReadHeading(odom_cfgType * odom)
 // #######################################################
 void LRL_MPU6050_Init(odom_cfgType * odom)
 {
-    HAL_I2C_Mem_Read(odom->hi2c, MPU_ADDR, WHO_AM_I, 1, &_imu_addr_check, 1, DELAY_TIMEOUT);
+    HAL_I2C_Mem_Read(odom->imu.hi2c, MPU_ADDR, WHO_AM_I, 1, &_imu_addr_check, 1, DELAY_TIMEOUT);
 
     if (_imu_addr_check == 0x68) // 0x68 will be returned by the sensor if everything goes well
     {
         // power management register 0X6B we should write all 0's to wake the sensor up
         _i2c_reg_data = 0x00;
-        HAL_I2C_Mem_Write(odom->hi2c, MPU_ADDR, PWR_MGMT_1, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
+        HAL_I2C_Mem_Write(odom->imu.hi2c, MPU_ADDR, PWR_MGMT_1, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
 
         // Set DATA RATE of 1KHz by writing SMPLRT_DIV register
         _i2c_reg_data = 0x07;
-        HAL_I2C_Mem_Write(odom->hi2c, MPU_ADDR, SMPLRT_DIV, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
+        HAL_I2C_Mem_Write(odom->imu.hi2c, MPU_ADDR, SMPLRT_DIV, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
 
         // Set accelerometer configuration in ACCEL_CONFIG Register
         // XA_ST=0,YA_ST=0,ZA_ST=0, FS_SEL=0 -> � 2g
         _i2c_reg_data = 0x00;
-        HAL_I2C_Mem_Write(odom->hi2c, MPU_ADDR, ACCEL_CONFIG, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
+        HAL_I2C_Mem_Write(odom->imu.hi2c, MPU_ADDR, ACCEL_CONFIG, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
 
         // Set Gyroscopic configuration in GYRO_CONFIG Register
         // XG_ST=0,YG_ST=0,ZG_ST=0, FS_SEL=0 ->  250 �/s
         _i2c_reg_data = 0x00;
-        HAL_I2C_Mem_Write(odom->hi2c, MPU_ADDR, GYRO_CONFIG, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
+        HAL_I2C_Mem_Write(odom->imu.hi2c, MPU_ADDR, GYRO_CONFIG, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
     }
 }
 
 void LRL_MPU6050_ReadAccel(odom_cfgType * odom)
 {
     // Read 6 BYTES of data starting from ACCEL_XOUT_H register
-    HAL_I2C_Mem_Read(odom->hi2c, MPU_ADDR, ACCEL_XOUT_H, 1, (uint8_t *)&_imu_buffer, 6, DELAY_TIMEOUT);
+    HAL_I2C_Mem_Read(odom->imu.hi2c, MPU_ADDR, ACCEL_XOUT_H, 1, (uint8_t *)&_imu_buffer, 6, DELAY_TIMEOUT);
 
     odom->accel.x = (int16_t)(_imu_buffer[0] << 8 | _imu_buffer[1]);
     odom->accel.y = (int16_t)(_imu_buffer[2] << 8 | _imu_buffer[3]);
@@ -133,7 +133,7 @@ void LRL_MPU6050_ReadAccel(odom_cfgType * odom)
 
 void LRL_MPU6050_ReadGyro(odom_cfgType *odom)
 {
-	HAL_I2C_Mem_Read(odom->hi2c, MPU_ADDR, GYRO_XOUT_H, 1, (uint8_t *)_imu_buffer, 6, DELAY_TIMEOUT);
+	HAL_I2C_Mem_Read(odom->imu.hi2c, MPU_ADDR, GYRO_XOUT_H, 1, (uint8_t *)_imu_buffer, 6, DELAY_TIMEOUT);
 
 	odom->gyro.x = (int16_t)(_imu_buffer[0] << 8 | _imu_buffer[1]);
 	odom->gyro.y = (int16_t)(_imu_buffer[2] << 8 | _imu_buffer[3]);
@@ -147,11 +147,11 @@ void LRL_MPU6050_ReadGyro(odom_cfgType *odom)
 void LRL_MPU6050_EnableBypass(odom_cfgType * odom, uint8_t enable)
 {
 	_i2c_reg_data = 0x00;
-	HAL_I2C_Mem_Write(odom->hi2c, MPU_ADDR, USER_CTRL, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
+	HAL_I2C_Mem_Write(odom->imu.hi2c, MPU_ADDR, USER_CTRL, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
 	_i2c_reg_data = 0x02 * enable;
-	HAL_I2C_Mem_Write(odom->hi2c, MPU_ADDR, INT_PIN_CFG, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
+	HAL_I2C_Mem_Write(odom->imu.hi2c, MPU_ADDR, INT_PIN_CFG, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
 	_i2c_reg_data = 0x00;
-	HAL_I2C_Mem_Write(odom->hi2c, MPU_ADDR, PWR_MGMT_1, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
+	HAL_I2C_Mem_Write(odom->imu.hi2c, MPU_ADDR, PWR_MGMT_1, 1, &_i2c_reg_data, 1, DELAY_TIMEOUT);
 }
 
 // #########################################################
@@ -159,69 +159,69 @@ void LRL_MPU6050_EnableBypass(odom_cfgType * odom, uint8_t enable)
 // #########################################################
 void LRL_Encoder_Init(odom_cfgType * odom)
 {
-	__HAL_TIM_SET_COUNTER(odom->htim_ENC_R, 0);
-	__HAL_TIM_SET_COUNTER(odom->htim_ENC_L, 0);
+	__HAL_TIM_SET_COUNTER(odom->enc_right.htim, 0);
+	__HAL_TIM_SET_COUNTER(odom->enc_left.htim, 0);
 
-	odom->right_tick = 0;
-	odom->left_tick = 0;
-	odom->right_tick_prev = 0;
-	odom->left_tick_prev = 0;
+	odom->enc_right.tick = 0;
+	odom->enc_left.tick = 0;
+	odom->enc_right.tick_prev = 0;
+	odom->enc_left.tick_prev = 0;
 }
 
 void LRL_Encoder_ReadAngularSpeed(odom_cfgType * odom)
 {
-	odom->right_tick = __HAL_TIM_GET_COUNTER(odom->htim_ENC_R);
-	odom->left_tick = __HAL_TIM_GET_COUNTER(odom->htim_ENC_L);
+	odom->enc_right.tick = __HAL_TIM_GET_COUNTER(odom->enc_right.htim);
+	odom->enc_left.tick = __HAL_TIM_GET_COUNTER(odom->enc_left.htim);
 
-	if(__HAL_TIM_IS_TIM_COUNTING_DOWN(odom->htim_ENC_R) == 0)
+	if(__HAL_TIM_IS_TIM_COUNTING_DOWN(odom->enc_right.htim) == 0)
 	{
-	  if(odom->right_tick - odom->right_tick_prev >= 0)
+	  if(odom->enc_right.tick - odom->enc_right.tick_prev >= 0)
 	  {
-		  odom->vel.right = odom->right_tick - odom->right_tick_prev;
+		  odom->vel.right = odom->enc_right.tick - odom->enc_right.tick_prev;
 	  }
 	  else
 	  {
-		  odom->vel.right = (odom->TIM_ENC_MAX_ARR - odom->right_tick_prev) + odom->right_tick;
+		  odom->vel.right = (odom->enc_right.MAX_ARR - odom->enc_right.tick_prev) + odom->enc_right.tick;
 	  }
 	}
 	else
 	{
-	  if(odom->right_tick_prev - odom->right_tick >= 0)
+	  if(odom->enc_right.tick_prev - odom->enc_right.tick >= 0)
 	  {
-		  odom->vel.right = -(odom->right_tick - odom->right_tick_prev);
+		  odom->vel.right = -(odom->enc_right.tick - odom->enc_right.tick_prev);
 	  }
 	  else
 	  {
-		  odom->vel.right = (odom->TIM_ENC_MAX_ARR - odom->right_tick) + odom->right_tick_prev;
+		  odom->vel.right = (odom->enc_right.MAX_ARR - odom->enc_right.tick) + odom->enc_right.tick_prev;
 	  }
 	}
 
-	if(__HAL_TIM_IS_TIM_COUNTING_DOWN(odom->htim_ENC_L) == 0)
+	if(__HAL_TIM_IS_TIM_COUNTING_DOWN(odom->enc_left.htim) == 0)
 	{
-	  if(odom->left_tick - odom->left_tick_prev >= 0)
+	  if(odom->enc_left.tick - odom->enc_left.tick_prev >= 0)
 	  {
-		  odom->vel.left = odom->left_tick - odom->left_tick_prev;
+		  odom->vel.left = odom->enc_left.tick - odom->enc_left.tick_prev;
 	  }
 	  else
 	  {
-		  odom->vel.left = (odom->TIM_ENC_MAX_ARR - odom->left_tick_prev) + odom->left_tick;
+		  odom->vel.left = (odom->enc_left.MAX_ARR - odom->enc_left.tick_prev) + odom->enc_left.tick;
 	  }
 	}
 	else
 	{
-	  if(odom->left_tick_prev - odom->left_tick >= 0)
+	  if(odom->enc_left.tick_prev - odom->enc_left.tick >= 0)
 	  {
-		  odom->vel.left = -(odom->left_tick - odom->left_tick_prev);
+		  odom->vel.left = -(odom->enc_left.tick - odom->enc_left.tick_prev);
 	  }
 	  else
 	  {
-		  odom->vel.left = (odom->TIM_ENC_MAX_ARR - odom->left_tick) + odom->left_tick_prev;
+		  odom->vel.left = (odom->enc_left.MAX_ARR - odom->enc_left.tick) + odom->enc_left.tick_prev;
 	  }
 	}
 
-	odom->vel.right = odom->vel.right * odom->TICK2RPM;
-	odom->vel.left = odom->vel.left * odom->TICK2RPM;
+	odom->vel.right = odom->vel.right * odom->enc_right.TICK2RPM;
+	odom->vel.left = odom->vel.left * odom->enc_left.TICK2RPM;
 
-	odom->right_tick_prev = odom->right_tick;
-	odom->left_tick_prev = odom->left_tick;
+	odom->enc_right.tick_prev = odom->enc_right.tick;
+	odom->enc_left.tick_prev = odom->enc_left.tick;
 }

@@ -71,13 +71,30 @@ uint8_t flag_tx = 0, pid_tim_flag = 0, dir_flag = 0;
 
 // ####################   ODOMETRY  ###################
 
-odom_cfgType odom =
+const imu_cfgType imu =
 {
-	&hi2c3,
+	&hi2c3
+};
+
+const encoder_cfgType enc_right =
+{
 	&htim3,
+	48960,
+	0.1225f		// 6000/48960
+};
+
+const encoder_cfgType enc_left =
+{
 	&htim2,
 	48960,
 	0.1225f		// 6000/48960
+};
+
+odom_cfgType odom =
+{
+	imu,
+	enc_right,
+	enc_left
 };
 
 // ####################   Motor struct Value Setting   ###################
@@ -109,7 +126,7 @@ const diffDrive_cfgType diff_robot =
 	motor_right,
 	motor_left,
 	65,
-	200
+	180
 };
 
 const ultrasonic_cfgType us_front =
@@ -274,13 +291,13 @@ int main(void)
 
 //  LRL_PID_Init(&pid_motor_left,  1);
 //  LRL_PID_Init(&pid_motor_right, 1);
-//  LRL_MPU6050_EnableBypass(&odom, 0);
+  LRL_MPU6050_EnableBypass(&odom, 1);
 //  LRL_MPU6050_Init(&odom);
 //  LRL_MPU_Init(&gy80);
 
 //  LRL_MPU_Bypass(&gy80);
 //
-//  LRL_HMC5883L_Init(&odom);
+LRL_HMC5883L_Init(&odom);
 //uint8_t ident = 0;
   //uint8_t tstt[3];
   /* USER CODE END 2 */
@@ -289,7 +306,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-LRL_Encoder_ReadAngularSpeed(&odom);
+//LRL_Encoder_ReadAngularSpeed(&odom);
 //		HAL_I2C_Master_Transmit(&hi2c3, HMC5883L_ADDRESS >> 1, 0x3D, 1, DELAY_TIMEOUT);
 //		HAL_I2C_Mem_Read(&hi2c3, HMC5883L_ADDRESS >> 1, 10, 1, &ident, 1, DELAY_TIMEOUT);
 //	  HAL_I2C_Mem_Read(&hi2c3, 0x3D, 10, 1, &val_x, 1, 100);
@@ -327,7 +344,7 @@ LRL_Encoder_ReadAngularSpeed(&odom);
 //	  LRL_MPU6050_ReadGyro(&odom);
 //	  LRL_MPU6050_ReadAccel(&odom);
 
-
+LRL_HMC5883L_ReadHeading(&odom);
 
 // ####################   Motor Test Scenarios   ####################
 //	  LRL_Motion_Control(diff_robot, -100, 100);
@@ -415,8 +432,6 @@ LRL_Encoder_ReadAngularSpeed(&odom);
 //		  angular_speed_left = left_enc_diff * Tick2RPM_Rate ;//  *Speed2PWM_Rate;
 //		  angular_speed_right = right_enc_diff * Tick2RPM_Rate; // * Speed2PWM_Rate;
 
-angular_speed_left = odom.vel.left;
-angular_speed_right = odom.vel.right;
 
 /*
 		  LRL_PID_Update(&pid_motor_left,angular_speed_left,120);
@@ -447,7 +462,7 @@ angular_speed_right = odom.vel.right;
 
 	  */
 
-		  sprintf(MSG,"%06.2f \t %06.2f \t %03d \t %03d  \t %03d \t %03d\r\n", angular_speed_right, angular_speed_left, odom.right_tick, odom.left_tick, odom.right_tick_prev, odom.left_tick_prev );
+		  sprintf(MSG,"%03d \r\n", odom.mag.heading);
 	//	  sprintf(MSG,"the speed is : %d\n\r", data[0]);
 		  HAL_UART_Transmit(&huart1,MSG, sizeof(MSG),100);
 		  HAL_Delay(10);
