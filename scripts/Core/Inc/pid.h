@@ -1,8 +1,11 @@
 /*
  * pid.h
  *
- *  Created on: Mar 24, 2024
- *      Author: arian
+ *  Created on: Mar 24, 2023
+ *  Author: Lenna Robotics Research Laboratory
+ *      	Autonomous Systems Research Branch
+ *			Iran University of Science and Technology
+ *  GitHub:	github.com/Lenna-Robotics-Research-Lab
  */
 
 #ifndef INC_PID_H_
@@ -10,7 +13,6 @@
 
 #include "stm32f4xx_hal.h"
 #include "stdbool.h"
-
 
 //=========================================== PID Values ========================================
 
@@ -32,7 +34,7 @@
 
 
 typedef struct
-	{
+{
 	float Kp;
 	float Ki;
 	float Kd;
@@ -47,7 +49,7 @@ typedef struct
 	uint8_t Anti_windup_EN;
 	float Wind_Up_Amount;
 	float Error;
-	}pid_cfgType;
+} pid_cfgType;
 
 void LRL_PID_Init(pid_cfgType *pid_cfg,uint8_t AntiWindup);
 void LRL_PID_Update(pid_cfgType *pid_cfg,float measurement,float set_point);

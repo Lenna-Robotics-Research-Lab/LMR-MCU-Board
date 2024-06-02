@@ -61,13 +61,9 @@
 #define US3_TRIG_PIN		GPIO_PIN_3
 #define US4_TRIG_PIN		GPIO_PIN_4
 
-//=========================================== Conversions ========================================
 
-// imu values
 
 #define rad2deg 57.2958f
-
-// pid values
 
 #define Speed2PWM_Rate (float)(75/218)
 #define Tick2RPM_Rate 0.1225

@@ -12,17 +12,6 @@
 #include "stdbool.h"
 #include "stdlib.h"
 
-//void LRL_Motion_Init(motor_cfgType motor_left, motor_cfgType motor_right)
-//{
-//	// Starting the Timer PWM
-//	HAL_TIM_PWM_Start(motor_left.TIM_PWM_Handle, motor_left.TIM_PWM_Channel);
-//	HAL_TIM_PWM_Start(motor_right.TIM_PWM_Handle, motor_right.TIM_PWM_Channel);
-//
-//	// Starting the Timer Encoder Mode
-//	HAL_TIM_Encoder_Start(motor_left.TIM_ENC_Handle, TIM_CHANNEL_ALL);
-//	HAL_TIM_Encoder_Start(motor_right.TIM_ENC_Handle, TIM_CHANNEL_ALL);
-//}
-
 void LRL_Motor_Speed(motor_cfgType motor, int8_t duty_cycle)
 {
 	bool dir;
