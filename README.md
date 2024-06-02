@@ -4,8 +4,8 @@
 
 The Bardia Board, designed as an open-source hardware by Lenna Robotics Lab, is the MCU board for the LMR v1.1. The Schematics and PCB of this board is free to use under open-source licensing. 
 
-![Alt text](https://github.com/Lenna-Robotics-Research-Lab/LMR-MCU-Board/blob/main/Documents/images/Lenna_Board_2.png "LMR v1.1 Bardia Board")
-![Alt text](https://github.com/Lenna-Robotics-Research-Lab/LMR-MCU-Board/blob/main/Documents/images/Lenna_Board_3.png "LMR v1.1 Bardia Board")
+![Alt text](./3-Documentation/3-Figures/Lenna_Board_2.png "LMR v1.1 Bardia Board")
+![Alt text](./3-Documentation/3-Figures/Lenna_Board_3.png "LMR v1.1 Bardia Board")
 </br>
 
 Some highlights on the board are listed below:
@@ -64,7 +64,7 @@ This Section is dedicated to provide a clearer view of the location and the purp
 
 
 For a clearer comprehension of the board's pinout, please refer to the accompanying diagram, which illustrates the layout and pin assignments.
-![Alt text](https://github.com/Lenna-Robotics-Research-Lab/LMR-MCU-Board/blob/main/Documents/images/Board_layout.jpg "LMR v1.1 Pinout")
+![Alt text](./3-Documentation/3-Figures/Board_layout.jpg "LMR v1.1 Pinout")
 
 ## Motor System Identification and Controller Design
 
