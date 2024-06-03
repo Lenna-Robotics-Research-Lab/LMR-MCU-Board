@@ -22,6 +22,7 @@ float tmp_x,tmp_y,tmp_z;
 // ############################################################
 // ####################  HMC MAGNETOMETER  ####################
 // ############################################################
+
 float LRL_HMC5883L_SetDeclination(int16_t declination_degs , int16_t declination_mins, char declination_dir)
 {
 	int8_t _dir = 0;
@@ -84,6 +85,7 @@ void LRL_HMC5883L_ReadHeading(odom_cfgType * odom)
 // #######################################################
 // ####################  IMU MPU6050  ####################
 // #######################################################
+
 void LRL_MPU6050_Init(odom_cfgType * odom)
 {
     HAL_I2C_Mem_Read(odom->imu.hi2c, MPU_ADDR, WHO_AM_I, 1, &_imu_addr_check, 1, DELAY_TIMEOUT);
@@ -157,6 +159,7 @@ void LRL_MPU6050_EnableBypass(odom_cfgType * odom, uint8_t enable)
 // #########################################################
 // ####################  MOTOR ENCODER  ####################
 // #########################################################
+
 void LRL_Encoder_Init(odom_cfgType * odom)
 {
 	__HAL_TIM_SET_COUNTER(odom->enc_right.htim, 0);
