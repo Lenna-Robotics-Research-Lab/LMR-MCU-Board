@@ -158,6 +158,12 @@ typedef struct
 typedef struct
 {
 	I2C_HandleTypeDef * hi2c;	// I2C Sensors e.g.  IMU, Magnetometer, etc.
+	float 	offset_calibration_x;
+	float 	offset_calibration_y;
+	float 	offset_calibration_z;
+	float 	roll_temp;
+	float 	pitch_temp;
+	float	yaw_temp;
 } imu_cfgType;
 
 typedef struct
@@ -183,8 +189,10 @@ void LRL_HMC5883L_ReadHeading(odom_cfgType * odom);
 
 void LRL_MPU6050_Init(odom_cfgType * odom);
 void LRL_MPU6050_ReadAccel(odom_cfgType * odom);
-void LRL_MPU6050_EnableBypass(odom_cfgType * odom, uint8_t enable);
+void _LRL_MPU6050_EnableBypass(odom_cfgType * odom, uint8_t enable);
 void LRL_MPU6050_ReadGyro(odom_cfgType *odom);
+void LRL_MPU6050_ReadAll(odom_cfgType *odom);
+void LRL_MPU6050_ComplementaryFilter(odom_cfgType *odom);
 
 void LRL_Encoder_Init(odom_cfgType * odom);
 void LRL_Encoder_ReadAngularSpeed(odom_cfgType * odom);

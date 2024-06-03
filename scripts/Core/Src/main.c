@@ -252,14 +252,14 @@ int main(void)
 
   LRL_Encoder_Init(&odom);
 
-  LRL_MPU6050_EnableBypass(&odom, 0);
   LRL_MPU6050_Init(&odom);
 
-  LRL_MPU6050_EnableBypass(&odom, 1);
   LRL_HMC5883L_Init(&odom);
 
   LRL_PID_Init(&pid_motor_left,  1);
   LRL_PID_Init(&pid_motor_right, 1);
+
+  HAL_UART_Transmit(&huart1, "HELLO \n\r" , sizeof("HELLO \n\r" ), 10);
 
   /* USER CODE END 2 */
 
@@ -267,6 +267,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  if(pid_tim_flag == 1)
+	  {
+		LRL_MPU6050_ReadAll(&odom);
+		LRL_MPU6050_ComplementaryFilter(&odom);
+
+		sprintf(MSG,"readings are : %5.2f\t %5.2f\t %5.2f\t \n\r",odom.angle.x , odom.angle.y, odom.angle.z);
+		HAL_UART_Transmit(&huart1, &MSG, sizeof(MSG), 10);
+		pid_tim_flag = 0;
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
