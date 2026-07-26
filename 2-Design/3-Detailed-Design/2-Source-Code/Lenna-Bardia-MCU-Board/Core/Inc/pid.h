@@ -122,7 +122,7 @@ void LRL_PID_Init(pid_cfgType *pid_cfg,uint8_t AntiWindup);
  * @param measurement The current measured value (e.g., speed).
  * @param set_point The desired set point.
  */
-void LRL_PID_Update(pid_cfgType *pid, odom_cfgType *odom, int16_t left_setpoint, int16_t right_setpoint);
+void LRL_PID_Update(pid_cfgType *pid, odom_cfgType *odom);
 //void LRL_PID_Update(pid_cfgType2 *pid_cfg, int16_t measurement, int16_t set_point);
 
 #endif /* INC_PID_H_ */

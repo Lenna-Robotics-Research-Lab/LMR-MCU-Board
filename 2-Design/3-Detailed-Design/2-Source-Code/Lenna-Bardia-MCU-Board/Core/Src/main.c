@@ -341,7 +341,9 @@ int main(void)
 	  {
 		 LRL_ROSSerial_Data_Handle(&ros_packet, &imu, &odom, &mypid);
 		 LRL_ROSSerial_Data_Handle(&usb2serial_packet, &imu, &odom, &mypid);
-		 LRL_PID_Update(&mypid, &odom, 150, 150);
+		 mypid.Ref_Vel_l = 150;
+		 mypid.Ref_Vel_r = 150;
+		 LRL_PID_Update(&mypid, &odom);
 		 LRL_Motion_Control(diff_robot, mypid.Control_Signal_l,mypid.Control_Signal_r);
 
 		 /* Alternative version for PID

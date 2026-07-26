@@ -143,7 +143,7 @@ void LRL_PID_Init(pid_cfgType *pid, uint8_t AntiWindup)
 //	pid_cfg->Prev_Measurement = measurement;
 //	pid_cfg->Prev_Error = pid_cfg->Error;
 //}
-void LRL_PID_Update(pid_cfgType *pid, odom_cfgType *odom, int16_t left_setpoint, int16_t right_setpoint)
+void LRL_PID_Update(pid_cfgType *pid, odom_cfgType *odom)
 {
 
 	int16_t _vel_r, _vel_l;
@@ -154,20 +154,20 @@ void LRL_PID_Update(pid_cfgType *pid, odom_cfgType *odom, int16_t left_setpoint,
 	_vel_r = odom->vel.right;
 
 	// Determine the direction of the control signal.
-	int8_t _dir_r = (right_setpoint > 0) - (right_setpoint < 0);
-	int8_t _dir_l = (left_setpoint  > 0) - (left_setpoint  < 0);
+	int8_t _dir_r = (pid->Ref_Vel_r > 0) - (pid->Ref_Vel_r < 0);
+	int8_t _dir_l = (pid->Ref_Vel_r  > 0) - (pid->Ref_Vel_r  < 0);
 
 	// Use absolute values for error calculation to handle direction separately.
 
 //	_vel_r 			= abs(_vel_r);
-//	right_setpoint 	= abs(right_setpoint);
+//	pid->Ref_Vel_r 	= abs(pid->Ref_Vel_r);
 //
 //	_vel_l 			= abs(_vel_l);
-//	left_setpoint 	= abs(left_setpoint);
+//	pid->Ref_Vel_r 	= abs(pid->Ref_Vel_r);
 
 	// Calculate the current error and scale it.
-	pid->Error_r = (right_setpoint - _vel_r) * Speed2PWM_Rate;
-	pid->Error_l = (left_setpoint - _vel_l) * Speed2PWM_Rate;
+	pid->Error_r = (pid->Ref_Vel_r - _vel_r) * Speed2PWM_Rate;
+	pid->Error_l = (pid->Ref_Vel_r - _vel_l) * Speed2PWM_Rate;
 
 	// Calculate the integral term using the trapezoidal rule.
 	pid->Integrator_Amount_r += (pid->Ts * (pid->Ki_r * (pid->Error_r + pid->Prev_Error_r)));
