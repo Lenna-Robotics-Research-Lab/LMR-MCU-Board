@@ -102,6 +102,8 @@ typedef struct
 	float 	Error_r;					/**< Current error (set_point - measurement) right. */
 	float  	Error_l;					/**< Current error (set_point - measurement) left. */
 	int8_t 	dir;						/**< Direction of the motor. */
+	int16_t Ref_Vel_r;
+	int16_t Ref_Vel_l;
 } pid_cfgType;
 
 /* Function Prototypes -------------------------------------------------------*/
@@ -112,6 +114,7 @@ typedef struct
  * @param AntiWindup Flag to enable or disable anti-windup (1 = enabled, 0 = disabled).
  */
 void LRL_PID_Init(pid_cfgType *pid_cfg,uint8_t AntiWindup);
+//void LRL_PID_Init(pid_cfgType2 *pid_cfg,uint8_t AntiWindup);
 
 /**
  * @brief Updates the PID controller and calculates the new control signal.
@@ -120,5 +123,6 @@ void LRL_PID_Init(pid_cfgType *pid_cfg,uint8_t AntiWindup);
  * @param set_point The desired set point.
  */
 void LRL_PID_Update(pid_cfgType *pid, odom_cfgType *odom, int16_t left_setpoint, int16_t right_setpoint);
+//void LRL_PID_Update(pid_cfgType2 *pid_cfg, int16_t measurement, int16_t set_point);
 
 #endif /* INC_PID_H_ */

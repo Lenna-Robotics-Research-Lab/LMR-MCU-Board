@@ -186,27 +186,30 @@ const ultrasonic_cfgType us_front =
 // ####################   PID struct Value Setting   ###################
 
 // definitions concerning PID gain values are made in the main.h header file
-//pid_cfgType pid_motor_left =
-//{
-//	.Kp 					= Proportional_Gain_LEFT_MOTOR,
-//	.Ki 					= Integral_Gain_LEFT_MOTOR,
-//	.Kd 					= Derivative_Gain_LEFT_MOTOR,
-//	.Ts 					= Sampling_Time,
-//	.Lower_Limit_Saturation = Lower_Saturation_Limit,
-//	.Upper_Limit_Saturation = Upper_Saturation_Limit,
-//	.Wind_Up_Amount			= 1,
-//};
-//
-//pid_cfgType pid_motor_right =
-//{
-//	.Kp 					= Proportional_Gain_LEFT_MOTOR,
-//	.Ki 					= Integral_Gain_LEFT_MOTOR,
-//	.Kd 					= Derivative_Gain_LEFT_MOTOR,
-//	.Ts 					= Sampling_Time,
-//	.Lower_Limit_Saturation = Lower_Saturation_Limit,
-//	.Upper_Limit_Saturation = Upper_Saturation_Limit,
-//	.Wind_Up_Amount			= 1,
-//};
+
+/* alternative PID
+pid_cfgType2 pid_motor_left =
+{
+	.Kp 					= Proportional_Gain_LEFT_MOTOR,
+	.Ki 					= Integral_Gain_LEFT_MOTOR,
+	.Kd 					= Derivative_Gain_LEFT_MOTOR,
+	.Ts 					= Sampling_Time,
+	.Lower_Limit_Saturation = Lower_Saturation_Limit,
+	.Upper_Limit_Saturation = Upper_Saturation_Limit,
+	.Wind_Up_Amount			= 1,
+};
+
+pid_cfgType2 pid_motor_right =
+{
+	.Kp 					= Proportional_Gain_LEFT_MOTOR,
+	.Ki 					= Integral_Gain_LEFT_MOTOR,
+	.Kd 					= Derivative_Gain_LEFT_MOTOR,
+	.Ts 					= Sampling_Time,
+	.Lower_Limit_Saturation = Lower_Saturation_Limit,
+	.Upper_Limit_Saturation = Upper_Saturation_Limit,
+	.Wind_Up_Amount			= 1,
+};
+*/
 
 pid_cfgType mypid;
 // ####################   Packet struct Value Setting   ###################
@@ -311,12 +314,14 @@ int main(void)
   HAL_GPIO_WritePin(BLINK_LED_PORT, BLINK_LED_PIN, 1);
 
   LRL_PID_Init(&mypid, 1);
+//  LRL_PID_Init(&pid_motor_left,  1);
+//  LRL_PID_Init(&pid_motor_right, 1);
 
   LRL_Odometry_Init(&odom);
 
-  LRL_IMU_MPUInit(&imu);
+//  LRL_IMU_MPUInit(&imu);
 
-  LRL_IMU_MagInit(&imu);
+//  LRL_IMU_MagInit(&imu);
 
   LRL_ROSSerial_Init(&usb2serial_packet, USB2SERIAL_UART_HANDLER);
   LRL_ROSSerial_Init(&ros_packet, JETSON_UART_HANDLER);
@@ -336,6 +341,19 @@ int main(void)
 	  {
 		 LRL_ROSSerial_Data_Handle(&ros_packet, &imu, &odom, &mypid);
 		 LRL_ROSSerial_Data_Handle(&usb2serial_packet, &imu, &odom, &mypid);
+		 LRL_PID_Update(&mypid, &odom, 150, 150);
+		 LRL_Motion_Control(diff_robot, mypid.Control_Signal_l,mypid.Control_Signal_r);
+
+		 /* Alternative version for PID
+		 LRL_Odometry_ReadAngularSpeed(&odom);
+		 LRL_PID_Update(&pid_motor_left, odom.vel.left, 70);
+		 LRL_PID_Update(&pid_motor_right, odom.vel.right,70);
+		 */
+
+		 /*motor test
+		 LRL_Motion_MotorTest(diff_robot);
+		 */
+
 		 pid_tim_flag = 0;
 	  }
 
