@@ -1,2 +1,7 @@
 
 scripts/.settings/language.settings.xml
+*.su
+*.o
+*.o
+*.map
+*.list
