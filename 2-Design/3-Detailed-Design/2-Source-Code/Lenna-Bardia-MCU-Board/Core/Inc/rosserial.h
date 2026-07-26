@@ -58,6 +58,7 @@ typedef struct
     ros_state_t 		state;
     uint8_t     		rx_byte;
     uint16_t    		rx_index;
+    int16_t 			speed;
 } rosserial_cfgType;
 
 /* Function Prototypes -------------------------------------------------------*/

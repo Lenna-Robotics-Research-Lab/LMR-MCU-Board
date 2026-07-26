@@ -9,13 +9,13 @@
  * ============================================================================
  *
  * PACKET STRUCTURE (Incoming/Outgoing):
- * ┌────────────────────────────────────────────────────────────────────────┐
- * │ HEADER (5 bytes)             │ PAYLOAD (N bytes)      │ CHECKSUM (1)   │
- * ├──────┬──────┬──────┬─────────┬────────────────────────┬────────────────┤
- * │ SYNC │ SYNC │ LEN  │ LEN  	  │  HEADER   │ DATA       │ DATA           │
- * │ BYTE1│ BYTE2│ LOW  │ HIGH    │ CHECKSUM  │ (0 to N-1) │ CHECKSUM       │
- * │ 0xFF │ 0xFE │byte2 │byte3    │   byte4   │            │ (last byte)    │
- * └──────┴──────┴──────┴─────────┴───────────┴────────────┴────────────────┘
+ * ┌───────────────────────────────────────────────────────────────────────────┐
+ * │ 		  HEADER (5 bytes)            │ PAYLOAD (N bytes) │ CHECKSUM (1)   │
+ * ├──────┬──────┬──────┬──────┬──────────────────────────────┬────────────────┤
+ * │ SYNC │ SYNC │ LEN  │ LEN  │  HEADER  │   	   DATA       │       DATA     │
+ * │ BYTE1│ BYTE2│ LOW  │ HIGH │CHECKSUM  │     (0 to N-1)    │ CHECKSUM       │
+ * │ 0xFF │ 0xFE │byte2 │byte3 │  byte4   │             	  │ (last byte)    │
+ * └──────┴──────┴──────┴──────┴──────────┴───────────────────┴────────────────┘
  *
  * BYTE-BY-BREAKDOWN:
  *
@@ -81,7 +81,7 @@
  * ┌──────┬──────┬──────┬──────┬───────┬──────┬──────┬──────┬──────┬──────┬──────┬───────┐
  * │ 0xFF │ 0xFE │ 0x04 │ 0x00 │  0xFB │ 0x00 │ 0x00 │ 0x01 │ 0x02 │ 0x03 │ 0x04 │  0xF0 │
  * └──────┴──────┴──────┴──────┴───────┴──────┴──────┴──────┴──────┴──────┴──────┴───────┘
- *   SYNC1  SYNC2  LEN_L  LEN_H  H_CHK   ID_L   ID_H  DATA0 DATA1 DATA2 DATA3  D_CHK
+ *   SYNC1  SYNC2  LEN_L  LEN_H  H_CHK   ID_L   ID_H  DATA0   DATA1  DATA2  DATA3  D_CHK
  *
  * Byte breakdown:
  * - Bytes 0-1: 0xFF, 0xFE (sync markers)
@@ -479,7 +479,21 @@ void LRL_ROSSerial_GetPID(rosserial_cfgType *rosserial_handle, pid_cfgType *pid_
 
 void LRL_ROSSerial_MotorSeped(rosserial_cfgType *rosserial_handle, pid_cfgType *pid)
 {
-	int16_t _temp_ref_l=0, _temp_ref_r=0;
+//	int16_t _ref_l=0, _ref_r=0;
+
+	uint8_t signs = rosserial_handle->data[2];
+
+	pid->Ref_Vel_l =
+	    (signs & 0x10) ? -(int16_t)rosserial_handle->data[3]
+	                   :  (int16_t)rosserial_handle->data[3];
+
+	pid->Ref_Vel_r =
+	    (signs & 0x01) ? -(int16_t)rosserial_handle->data[4]
+	                   :  (int16_t)rosserial_handle->data[4];
+
+	HAL_UART_Transmit(rosserial_handle->huart, rosserial_handle->rxbuffer, rosserial_handle->pkt_len, 10);
+	rosserial_handle->dataValid = 0;
+
 }
 
 void _LRL_Clear_Buffer(rosserial_cfgType *rosserial_handle)
