@@ -58,9 +58,6 @@ typedef struct
     ros_state_t 		state;
     uint8_t     		rx_byte;
     uint16_t    		rx_index;
-    DMA_HandleTypeDef 	*hdma_rx;    // NEW
-    uint8_t 			dma_rxbuf[256];        // NEW
-    uint16_t 			dma_head;
 } rosserial_cfgType;
 
 /* Function Prototypes -------------------------------------------------------*/
@@ -79,6 +76,8 @@ void LRL_ROSSerial_Query(rosserial_cfgType *rosserial_handle);
 void LRL_ROSSerial_SetPID(rosserial_cfgType *rosserial_handle, pid_cfgType *pid_cfg);
 
 void LRL_ROSSerial_GetPID(rosserial_cfgType *rosserial_handle, pid_cfgType *pid_cfg);
+
+void LRL_ROSSerial_MotorSeped(rosserial_cfgType *rosserial_handle, pid_cfgType *pid);
 
 void _LRL_Clear_Buffer(rosserial_cfgType *rosserial_handle);
 //void LRL_ROSSerial_Parser(rosserial_cfgType *rosserial_handle);

@@ -2,9 +2,123 @@
  * @file rosserial.c
  * @brief This module handles the communication protocol for the robot.
  *
- * this function provides the functionality of rosserial on LCB of the robot
+ * This function provides the functionality of rosserial on LCB of the robot.
  *
- * @author Lenna Robotics Research Laboratory, Autonomous Systems Research Branch, Iran University of Science and Technology
+ * ============================================================================
+ * PROTOCOL COMMAND STRUCTURE AND USAGE GUIDE
+ * ============================================================================
+ *
+ * PACKET STRUCTURE (Incoming/Outgoing):
+ * ┌────────────────────────────────────────────────────────────────────────┐
+ * │ HEADER (5 bytes)             │ PAYLOAD (N bytes)      │ CHECKSUM (1)   │
+ * ├──────┬──────┬──────┬─────────┬────────────────────────┬────────────────┤
+ * │ SYNC │ SYNC │ LEN  │ LEN  	  │  HEADER   │ DATA       │ DATA           │
+ * │ BYTE1│ BYTE2│ LOW  │ HIGH    │ CHECKSUM  │ (0 to N-1) │ CHECKSUM       │
+ * │ 0xFF │ 0xFE │byte2 │byte3    │   byte4   │            │ (last byte)    │
+ * └──────┴──────┴──────┴─────────┴───────────┴────────────┴────────────────┘
+ *
+ * BYTE-BY-BREAKDOWN:
+ *
+ * Byte 0 (SYNC1): Always 0xFF - Start of packet marker
+ * Byte 1 (SYNC2): Always 0xFE - Validated in code (rxbuffer[1] == 0xFE)
+ *                 Prevents all-zero packets and provides version control
+ *                 for ROS Noetic/Melodic compatibility
+ *
+ * Bytes 2-3 (LENGTH): 16-bit payload length (little-endian)
+ *         Byte 2 = Low byte of payload length
+ *         Byte 3 = High byte of payload length
+ *         Note: Payload = Function ID (2 bytes) + Data bytes
+ *         Total packet length = Payload length + 8 (header + sync + checksum)
+ *
+ * Byte 4 (HEADER CHECKSUM): 255 - ((Byte2 + Byte3) % 256)
+ *         Validates header integrity before receiving full packet
+ *         Error code 0x02 if invalid
+ *
+ * Bytes 5-6 (FUNCTION ID): 2-byte function identifier (little-endian)
+ *         Byte 5 = Low byte (primary function ID used in this implementation)
+ *         Byte 6 = High byte (reserved for future expansion, currently unused)
+ *
+ * Bytes 7 to (N-1): DATA PAYLOAD
+ *         Variable length data specific to each function
+ *
+ * Last Byte (DATA CHECKSUM): 255 - (sum of all data bytes % 256)
+ *         Where "data bytes" includes Function ID (bytes 5-6) + Data payload
+ *         Validates complete packet integrity
+ *         Error code 0x03 if invalid
+ *
+ * ============================================================================
+ * ERROR RESPONSE CODES:
+ * ============================================================================
+ * Error packets are 8 bytes with same header structure:
+ * - 0xF1: Invalid sync byte (rxbuffer[1] != 0xFE) - Error code 0x01
+ * - 0xF2: Invalid header checksum - Error code 0x02
+ * - 0xF3: Invalid data checksum - Error code 0x03
+ * Error packet format: {0xFF, 0xFE, 0x00, 0x00, 0xFF, ErrorCode, 0xFF, Checksum}
+ *
+ * ============================================================================
+ * COMMAND EXAMPLES FOR QUERY MODE (Function ID 0x00):
+ * ============================================================================
+ *
+ * QUERY COMMAND - Echo back test (Function ID: 0x00):
+ * Purpose: Tests communication link by echoing received packet
+ *
+ * Example 1: Basic Query with no additional data
+ * ┌──────┬──────┬──────┬──────┬───────┬──────┬──────┬───────┐
+ * │ 0xFF │ 0xFE │ 0x00 │ 0x00 │  0xFF │ 0x00 │ 0x00 │  0xFF │
+ * └──────┴──────┴──────┴──────┴───────┴──────┴──────┴───────┘
+ *   SYNC1  SYNC2  LEN_L  LEN_H  H_CHK  ID_L   ID_H  D_CHK
+ *
+ * Byte breakdown:
+ * - Bytes 0-1: 0xFF, 0xFE (sync markers)
+ * - Bytes 2-3: 0x00, 0x00 (payload length = 0, no data beyond ID)
+ * - Byte 4: 0xFF = 255 - ((0x00 + 0x00) % 256) (header checksum)
+ * - Bytes 5-6: 0x00, 0x00 (function ID = 0x0000 for Query)
+ * - Byte 7: 0xFF = 255 - ((0x00 + 0x00) % 256) (data checksum)
+ *
+ * Expected Response: Complete packet echoed back (8 bytes)
+ *
+ * Example 2: Query with custom test data (4 bytes)
+ * ┌──────┬──────┬──────┬──────┬───────┬──────┬──────┬──────┬──────┬──────┬──────┬───────┐
+ * │ 0xFF │ 0xFE │ 0x04 │ 0x00 │  0xFB │ 0x00 │ 0x00 │ 0x01 │ 0x02 │ 0x03 │ 0x04 │  0xF0 │
+ * └──────┴──────┴──────┴──────┴───────┴──────┴──────┴──────┴──────┴──────┴──────┴───────┘
+ *   SYNC1  SYNC2  LEN_L  LEN_H  H_CHK   ID_L   ID_H  DATA0 DATA1 DATA2 DATA3  D_CHK
+ *
+ * Byte breakdown:
+ * - Bytes 0-1: 0xFF, 0xFE (sync markers)
+ * - Bytes 2-3: 0x04, 0x00 (payload length = 4 bytes)
+ * - Byte 4: 0xFB = 255 - ((0x04 + 0x00) % 256) = 251 (header checksum)
+ * - Bytes 5-6: 0x00, 0x00 (function ID = 0x0000 for Query)
+ * - Bytes 7-10: 0x01, 0x02, 0x03, 0x04 (test data)
+ * - Byte 11: 0xF0 = 255 - ((0x00+0x00+0x01+0x02+0x03+0x04) % 256) = 255 - 10 = 245
+ *             Data checksum includes bytes 5-10 (ID + data)
+ *
+ * Expected Response: Complete 12-byte packet echoed back
+ *
+ * ============================================================================
+ * OTHER AVAILABLE COMMANDS:
+ * ============================================================================
+ *
+ * 0x01 - ReadAll: Request all sensor data (odometry + IMU)
+ *        Payload: No additional data required (just ID bytes)
+ *        Example: {0xFF,0xFE,0x00,0x00,0xFF,0x01,0x00,0xFE}
+ *        Response: 34-byte packet with sensor readings
+ *
+ * 0x02 - SetPID: Configure PID parameters
+ *        Payload: Motor_select(1) + Kp(2) + Ki(2) + Kd(2) = 7 bytes
+ *        Motor_select: 0x00=right motor, 0x01=left motor
+ *        Example right motor: Kp=1.5, Ki=0.01, Kd=0.05 (scaled by 1000)
+ *        {0xFF,0xFE,0x07,0x00,0xF8,0x02,0x00,0x00,0xDC,0x05,0x0A,0x00,0x32,0x00,...}
+ *
+ * 0x03 - GetPID: Request current PID parameters
+ *        Payload: Motor_select(1 byte) - which motor to query
+ *        Example: Query right motor (0x00)
+ *        {0xFF,0xFE,0x01,0x00,0xFE,0x03,0x00,0x00,...}
+ *
+ * 0x04 - MotorSpeed: Set motor speeds (differential drive)
+ *        Payload: Left speed(2) + Right speed(2) = 4 bytes
+ *
+ * @author Lenna Robotics Research Laboratory, Autonomous Systems Research Branch,
+ *         Iran University of Science and Technology
  * @date January 27, 2026
  * @version 1.0
  * @link https://github.com/Lenna-Robotics-Research-Lab
@@ -20,6 +134,7 @@
 #include "imu.h"
 #include "odometry.h"
 #include "stdio.h"
+#include "motion.h"
 /*-------------------------- Code Body ---------------------------------------- */
 
 void LRL_ROSSerial_Init(rosserial_cfgType *rosserial_handle, UART_HandleTypeDef *huart)
@@ -175,6 +290,10 @@ void _LRL_ROSSerial_Function(rosserial_cfgType *rosserial_handle, imu_statetype 
 	else if(_id == 0x03)
 	{
 		LRL_ROSSerial_GetPID(rosserial_handle, pid);
+	}
+	else if(_id == 0x04)
+	{
+		LRL_ROSSerial_MotorSeped(rosserial_handle, pid);
 	}
 	else
 	{
@@ -356,6 +475,11 @@ void LRL_ROSSerial_GetPID(rosserial_cfgType *rosserial_handle, pid_cfgType *pid_
 	HAL_UART_Transmit(rosserial_handle->huart, rosserial_handle->txbuffer, 14, 10);
 //	memset(rosserial_handle->txbuffer, 0 , sizeof(rosserial_handle->txbuffer));
 	rosserial_handle->dataValid = 0;
+}
+
+void LRL_ROSSerial_MotorSeped(rosserial_cfgType *rosserial_handle, pid_cfgType *pid)
+{
+	int16_t _temp_ref_l=0, _temp_ref_r=0;
 }
 
 void _LRL_Clear_Buffer(rosserial_cfgType *rosserial_handle)
