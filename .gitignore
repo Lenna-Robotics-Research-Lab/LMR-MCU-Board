@@ -5,3 +5,5 @@ scripts/.settings/language.settings.xml
 *.o
 *.map
 *.list
+*.hex
+*.elf
