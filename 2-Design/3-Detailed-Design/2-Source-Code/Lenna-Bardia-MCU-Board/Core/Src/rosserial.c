@@ -311,14 +311,6 @@ void LRL_ROSSerial_Query(rosserial_cfgType *rosserial_handle)
 
 void LRL_ROSSerial_ReadAll(rosserial_cfgType *rosserial_handle, odom_cfgType *odom, imu_statetype *imu)
 {
-    LRL_IMU_MPUReadAll(imu);
-    LRL_IMU_MagReadHeading(imu);
-    if(!odom->is_pid)
-    {
-    	LRL_Odometry_ReadAngularSpeed(odom);
-    }
-
-
     // Start of packet markers.
 	rosserial_handle->txbuffer[0] 	= 0xFF;
 	rosserial_handle->txbuffer[1] 	= 0xFE;

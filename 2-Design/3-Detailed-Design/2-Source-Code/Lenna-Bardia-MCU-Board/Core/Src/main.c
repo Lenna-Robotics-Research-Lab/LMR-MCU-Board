@@ -212,6 +212,8 @@ pid_cfgType2 pid_motor_right =
 */
 
 pid_cfgType mypid;
+
+uint8_t _pid_counter = 0; // this counter is added to reduce the effect of IMU polling temporary fix if you are not using IMU keep this 0
 // ####################   Packet struct Value Setting   ###################
 
 
@@ -355,6 +357,16 @@ int main(void)
 		 LRL_PID_Update(&mypid, &odom);
 		 LRL_Motion_Control(diff_robot, mypid.Control_Signal_l,mypid.Control_Signal_r);
 
+		 if(_pid_counter == 10){
+			 _pid_counter = 0;
+		     LRL_IMU_MPUReadAll(&imu);
+		     LRL_IMU_MagReadHeading(&imu);
+		     if(!odom.is_pid)
+		     {
+		     	LRL_Odometry_ReadAngularSpeed(&odom);
+		     }
+		 }
+
 		 /* Alternative version for PID
 		 LRL_Odometry_ReadAngularSpeed(&odom);
 		 LRL_PID_Update(&pid_motor_left, odom.vel.left, 70);
@@ -460,6 +472,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 	if(htim == &htim5)
 	{
+		_pid_counter ++;
 		pid_tim_flag = 1;
 	}
 
