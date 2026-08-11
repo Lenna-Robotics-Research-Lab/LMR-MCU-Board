@@ -225,6 +225,8 @@ float val_heading;
 
 uint8_t testBuffer[10]; // buffer for using test uart packet
 
+uint8_t _temp_flag = 0;
+
 //uint8_t protocol_buffer[256]; // the buffer used for the protocol
 
 /* USER CODE END PV */
@@ -314,14 +316,15 @@ int main(void)
   HAL_GPIO_WritePin(BLINK_LED_PORT, BLINK_LED_PIN, 1);
 
   LRL_PID_Init(&mypid, 1);
-//  LRL_PID_Init(&pid_motor_left,  1);
-//  LRL_PID_Init(&pid_motor_right, 1);
+
+  HAL_NVIC_SetPriority(TIM5_IRQn, 1, 0);
+  HAL_NVIC_SetPriority(USART2_IRQn, 2, 0);
 
   LRL_Odometry_Init(&odom);
 
-//  LRL_IMU_MPUInit(&imu);
+  LRL_IMU_MPUInit(&imu);
 
-//  LRL_IMU_MagInit(&imu);
+  LRL_IMU_MagInit(&imu);
 
   LRL_ROSSerial_Init(&usb2serial_packet, USB2SERIAL_UART_HANDLER);
   LRL_ROSSerial_Init(&ros_packet, JETSON_UART_HANDLER);
@@ -339,8 +342,14 @@ int main(void)
   {
 	  if(pid_tim_flag == 1)
 	  {
-		 LRL_ROSSerial_Data_Handle(&ros_packet, &imu, &odom, &mypid);
-		 LRL_ROSSerial_Data_Handle(&usb2serial_packet, &imu, &odom, &mypid);
+		 if(_temp_flag == 1)
+		 {
+			 LRL_ROSSerial_Data_Handle(&ros_packet, &imu, &odom, &mypid);
+		 }
+		 else if(_temp_flag == 2)
+		 {
+			 LRL_ROSSerial_Data_Handle(&usb2serial_packet, &imu, &odom, &mypid);
+		 }
 //		 mypid.Ref_Vel_l = 150;
 //		 mypid.Ref_Vel_r = 150;
 		 LRL_PID_Update(&mypid, &odom);
@@ -429,11 +438,17 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 
-	if((huart == ros_packet.huart) || (huart == usb2serial_packet.huart))
+	if(huart == ros_packet.huart)
 	{
+
 		LRL_ROSSerial_Rx(&ros_packet);
+		_temp_flag = 1;
+	}
+	else if  (huart == usb2serial_packet.huart)
+	{
 		LRL_ROSSerial_Rx(&usb2serial_packet);
-//		HAL_GPIO_WritePin(BLINK_LED_PORT, BLINK_LED_PIN, 1); // this is for testing purposes
+		_temp_flag = 2;
+//	HAL_GPIO_WritePin(BLINK_LED_PORT, BLINK_LED_PIN, 1); // this is for testing purposes
 	}
 
 

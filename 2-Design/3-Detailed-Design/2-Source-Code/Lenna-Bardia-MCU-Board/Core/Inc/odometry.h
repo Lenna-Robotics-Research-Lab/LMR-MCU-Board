@@ -99,6 +99,7 @@ typedef struct
 
     wheel_velocity      vel;          ///< Computed wheel angular velocities (signed)
     wheel_position      dist;         ///< Computed incremental distances per update (signed)
+    uint8_t				is_pid;
 } odom_cfgType;
 
 // ##############################################################

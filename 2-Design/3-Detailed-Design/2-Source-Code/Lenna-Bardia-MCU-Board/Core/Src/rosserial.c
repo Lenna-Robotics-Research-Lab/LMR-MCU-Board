@@ -313,8 +313,13 @@ void LRL_ROSSerial_ReadAll(rosserial_cfgType *rosserial_handle, odom_cfgType *od
 {
     LRL_IMU_MPUReadAll(imu);
     LRL_IMU_MagReadHeading(imu);
-    LRL_Odometry_ReadAngularSpeed(odom);
-	// Start of packet markers.
+    if(!odom->is_pid)
+    {
+    	LRL_Odometry_ReadAngularSpeed(odom);
+    }
+
+
+    // Start of packet markers.
 	rosserial_handle->txbuffer[0] 	= 0xFF;
 	rosserial_handle->txbuffer[1] 	= 0xFE;
 
@@ -327,6 +332,7 @@ void LRL_ROSSerial_ReadAll(rosserial_cfgType *rosserial_handle, odom_cfgType *od
 	rosserial_handle->txbuffer[5] 	= 0x01; // ID low byte
 	rosserial_handle->txbuffer[6] 	= 0x00; // ID high byte
 	// Pack odometry data.
+	__disable_irq();
 	rosserial_handle->txbuffer[7] 	= (uint8_t)(odom->vel.left >> 8);
 	rosserial_handle->txbuffer[8] 	= (uint8_t)(odom->vel.left & 0x00FF);
 	rosserial_handle->txbuffer[9] 	= (uint8_t)(odom->vel.right >> 8);
@@ -335,6 +341,7 @@ void LRL_ROSSerial_ReadAll(rosserial_cfgType *rosserial_handle, odom_cfgType *od
 	rosserial_handle->txbuffer[12] 	= (uint8_t)(odom->dist.left & 0x00FF);
 	rosserial_handle->txbuffer[13] 	= (uint8_t)(odom->dist.right >> 8);
 	rosserial_handle->txbuffer[14] 	= (uint8_t)(odom->dist.right & 0x00FF);
+	__enable_irq();
 
 	// Pack IMU accelerometer data.
 	rosserial_handle->txbuffer[15] 	= (uint8_t)(imu->accel.x_calibrated >> 8);
@@ -372,7 +379,8 @@ void LRL_ROSSerial_ReadAll(rosserial_cfgType *rosserial_handle, odom_cfgType *od
 	rosserial_handle->txbuffer[33] 	= _checksum;
 
 	// Transmit the complete packet.
-	HAL_UART_Transmit(rosserial_handle->huart, rosserial_handle->txbuffer, 34, 10);
+//	HAL_UART_Transmit(rosserial_handle->huart, rosserial_handle->txbuffer, 34, 10);
+	HAL_UART_Transmit_IT(rosserial_handle->huart, rosserial_handle->txbuffer, 34);
 //	memset(rosserial_handle->txbuffer, 0 , sizeof(rosserial_handle->txbuffer));
 	rosserial_handle->dataValid = 0;
 }
@@ -491,7 +499,7 @@ void LRL_ROSSerial_MotorSeped(rosserial_cfgType *rosserial_handle, pid_cfgType *
 	    (signs & 0x01) ? -(int16_t)rosserial_handle->data[4]
 	                   :  (int16_t)rosserial_handle->data[4];
 
-	HAL_UART_Transmit(rosserial_handle->huart, rosserial_handle->rxbuffer, rosserial_handle->pkt_len, 10);
+//	HAL_UART_Transmit_IT(rosserial_handle->huart, rosserial_handle->rxbuffer, rosserial_handle->pkt_len);
 	rosserial_handle->dataValid = 0;
 
 }

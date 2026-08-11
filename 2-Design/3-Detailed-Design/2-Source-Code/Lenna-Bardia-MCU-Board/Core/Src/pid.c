@@ -66,15 +66,6 @@ void LRL_PID_Init(pid_cfgType *pid, uint8_t AntiWindup)
     pid->Anti_windup_EN = AntiWindup;
 }
 
-//void LRL_PID_Init(pid_cfgType2 *pid_cfg,uint8_t AntiWindup)
-//{
-//	// Reset PID state variables.
-//	pid_cfg->Anti_windup_EN = AntiWindup;
-//	pid_cfg->Prev_Measurement = 0.0f;
-//	pid_cfg->Integrator_Amount = 0;
-//	pid_cfg->Prev_Error = 0.0f;
-//	pid_cfg->Control_Signal = 0;
-//}
 
 /**
  * @brief Updates the PID control signal.
@@ -87,71 +78,15 @@ void LRL_PID_Init(pid_cfgType *pid, uint8_t AntiWindup)
  * direction, anti-windup, and output saturation.
  */
 
-//void LRL_PID_Update(pid_cfgType2 *pid_cfg, int16_t measurement, int16_t set_point)
-//{
-//	int8_t _dir;
-//
-//	// Determine the direction of the control signal.
-//	_dir = set_point / abs(set_point);
-//
-//	// Use absolute values for error calculation to handle direction separately.
-//	measurement = abs(measurement);
-//	set_point = abs(set_point);
-//
-//	// Calculate the current error and scale it.
-//	pid_cfg->Error = set_point - measurement;
-//	pid_cfg->Error = pid_cfg->Error * Speed2PWM_Rate;
-//
-//	// Calculate the integral term using the trapezoidal rule.
-//	pid_cfg->Integrator_Amount += (pid_cfg->Ts * (pid_cfg->Ki * (pid_cfg->Error + pid_cfg->Prev_Error)));
-//
-//	// Derivative term is currently set to zero.
-//	pid_cfg->Differentiator_Amount = 0;
-//
-//	// Calculate the control signal as the sum of PID terms.
-//	pid_cfg->Control_Signal = (pid_cfg->Kp * pid_cfg->Error) + pid_cfg->Integrator_Amount + pid_cfg->Differentiator_Amount;
-//
-//	// Anti-windup implementation.
-//	if(pid_cfg->Anti_windup_EN == 1)
-//	{
-//		// If the control signal is within limits, update the anti-windup amount.
-//		if(pid_cfg->Control_Signal <= Upper_Saturation_Limit)
-//		{
-//			pid_cfg->Wind_Up_Amount = pid_cfg->Integrator_Amount;
-//		}
-//		else
-//		{
-//			// If saturated, re-calculate the control signal using the last non-saturated integral value.
-//			pid_cfg->Control_Signal = (pid_cfg->Kp * pid_cfg->Error) + pid_cfg->Wind_Up_Amount + pid_cfg->Differentiator_Amount;
-//		}
-//	}
-//
-//	// Apply output saturation limits.
-//	if(pid_cfg->Control_Signal > pid_cfg->Upper_Limit_Saturation)
-//	{
-//		pid_cfg->Control_Signal = pid_cfg->Upper_Limit_Saturation;
-//	}
-//	else if(pid_cfg->Control_Signal < pid_cfg->Lower_Limit_Saturation)
-//	{
-//		pid_cfg->Control_Signal = pid_cfg->Lower_Limit_Saturation;
-//	}
-//
-//	// Apply the determined direction to the final control signal.
-//	pid_cfg->Control_Signal = pid_cfg->Control_Signal * _dir;
-//
-//	// Update previous values for the next iteration.
-//	pid_cfg->Prev_Measurement = measurement;
-//	pid_cfg->Prev_Error = pid_cfg->Error;
-//}
 void LRL_PID_Update(pid_cfgType *pid, odom_cfgType *odom)
 {
-
 	int16_t _vel_r, _vel_l;
 
     int16_t _left_setpoint  = pid->Ref_Vel_l;
     int16_t _right_setpoint = pid->Ref_Vel_r;
 
 	LRL_Odometry_ReadAngularSpeed(odom);
+	odom->is_pid = 1;
 
 	_vel_l = odom->vel.left;
 	_vel_r = odom->vel.right;

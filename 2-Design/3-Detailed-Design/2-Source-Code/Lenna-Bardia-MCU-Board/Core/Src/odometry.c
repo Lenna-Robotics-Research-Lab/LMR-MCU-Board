@@ -36,6 +36,7 @@ void LRL_Odometry_Init(odom_cfgType * odom)
 	odom->enc_left.tick = 0;
 	odom->enc_right.tick_prev = 0;
 	odom->enc_left.tick_prev = 0;
+	odom->is_pid = 0;
 }
 
 
