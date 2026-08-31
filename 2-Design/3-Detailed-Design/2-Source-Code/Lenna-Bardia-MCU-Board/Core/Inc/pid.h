@@ -101,7 +101,8 @@ typedef struct
 	float 	Wind_Up_Amount_l;			/**< Integral term value during saturation for anti-windup right. */
 	float 	Error_r;					/**< Current error (set_point - measurement) right. */
 	float  	Error_l;					/**< Current error (set_point - measurement) left. */
-	int8_t 	dir;						/**< Direction of the motor. */
+	int8_t	Prev_Direction_r;
+	int8_t	Prev_Direction_l;
 	int16_t Ref_Vel_r;
 	int16_t Ref_Vel_l;
 } pid_cfgType;
