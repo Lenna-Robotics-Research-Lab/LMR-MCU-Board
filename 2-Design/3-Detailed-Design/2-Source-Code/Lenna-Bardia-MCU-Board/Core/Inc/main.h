@@ -129,7 +129,7 @@ void Error_Handler(void);
 
 // pid values
 
-#define Speed2PWM_Rate 75/218
+#define Speed2PWM_Rate (75/218.0f)
 #define Tick2RMP_Rate 6000/48960
 
 /* USER CODE END Private defines */
