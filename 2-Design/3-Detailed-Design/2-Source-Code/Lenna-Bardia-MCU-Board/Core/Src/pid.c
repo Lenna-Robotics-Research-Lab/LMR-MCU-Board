@@ -79,6 +79,142 @@ void LRL_PID_Init(pid_cfgType *pid, uint8_t AntiWindup)
  * direction, anti-windup, and output saturation.
  */
 
+static float LRL_PID_ClampFloat(
+    float value,
+    float minimum,
+    float maximum)
+{
+    if (value > maximum)
+        return maximum;
+
+    if (value < minimum)
+        return minimum;
+
+    return value;
+}
+
+
+static int8_t LRL_PID_Sign(int16_t value)
+{
+    return (value > 0) - (value < 0);
+}
+
+
+static int8_t LRL_PID_UpdateWheel(
+    float kp,
+    float ki,
+    float sample_time,
+    int16_t reference_rpm,
+    int16_t measured_rpm,
+    float *integrator,
+    float *previous_error,
+    float *current_error,
+    int8_t *previous_direction,
+    uint8_t anti_windup_enabled)
+{
+    int8_t direction = LRL_PID_Sign(reference_rpm);
+
+    /*
+     * A zero reference means zero PWM. Clear the stored controller
+     * state so that the next command cannot inherit old integral action.
+     */
+    if (direction == 0)
+    {
+        *integrator = 0.0f;
+        *previous_error = 0.0f;
+        *current_error = 0.0f;
+        *previous_direction = 0;
+        return 0;
+    }
+
+    /*
+     * Reset the controller when the commanded wheel direction changes.
+     * This prevents a positive-command integrator from kicking the motor
+     * after receiving a negative command, or vice versa.
+     */
+    if (
+        *previous_direction != 0 &&
+        direction != *previous_direction)
+    {
+        *integrator = 0.0f;
+        *previous_error = 0.0f;
+    }
+
+    /*
+     * Preserve reference_rpm's sign, but run the controller on speed
+     * magnitudes, matching the working Lenna-Mobile-Robot-ONE firmware.
+     */
+    float reference_magnitude =
+        (float)abs((int)reference_rpm);
+
+    float measurement_magnitude =
+        (float)abs((int)measured_rpm);
+
+    float error =
+        (reference_magnitude - measurement_magnitude) *
+        Speed2PWM_Rate;
+
+    /*
+     * Preserve the original firmware's effective integral behavior.
+     * Do not add a 0.5 factor yet because doing so changes the effective
+     * Ki and would require retuning.
+     */
+    float candidate_integrator =
+        *integrator +
+        sample_time * ki * (error + *previous_error);
+
+    float candidate_output =
+        kp * error + candidate_integrator;
+
+    /*
+     * Conditional integration:
+     * - Integrate normally inside the permitted PWM range.
+     * - When saturated, integrate only if the error moves the controller
+     *   back toward the valid range.
+     */
+    uint8_t allow_integration =
+        !anti_windup_enabled ||
+        (
+            candidate_output >= 0.0f &&
+            candidate_output <= 100.0f
+        ) ||
+        (
+            candidate_output > 100.0f &&
+            error < 0.0f
+        ) ||
+        (
+            candidate_output < 0.0f &&
+            error > 0.0f
+        );
+
+    if (allow_integration)
+    {
+        *integrator = candidate_integrator;
+    }
+
+    float output_magnitude =
+        kp * error + *integrator;
+
+    output_magnitude = LRL_PID_ClampFloat(
+        output_magnitude,
+        0.0f,
+        100.0f
+    );
+
+    *current_error = error;
+    *previous_error = error;
+    *previous_direction = direction;
+
+    /*
+     * Convert only after saturation. Adding 0.5 performs positive
+     * rounding instead of truncation.
+     */
+    int8_t pwm_magnitude =
+        (int8_t)(output_magnitude + 0.5f);
+
+    return (int8_t)(direction * pwm_magnitude);
+}
+
 void LRL_PID_Update(pid_cfgType *pid, odom_cfgType *odom)
 {
 	int16_t _vel_r, _vel_l;
