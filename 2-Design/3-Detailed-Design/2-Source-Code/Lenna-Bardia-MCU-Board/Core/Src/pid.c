@@ -61,7 +61,8 @@ void LRL_PID_Init(pid_cfgType *pid, uint8_t AntiWindup)
 
     pid->Ref_Vel_r = 0;
     pid->Ref_Vel_l = 0;
-    pid->dir = 0;
+    pid->Prev_Direction_r = 0;
+    pid->Prev_Direction_l = 0;
 
     pid->Anti_windup_EN = AntiWindup;
 }
