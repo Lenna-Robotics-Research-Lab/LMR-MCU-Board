@@ -324,9 +324,9 @@ int main(void)
 
   LRL_Odometry_Init(&odom);
 
-  LRL_IMU_MPUInit(&imu);
+//  LRL_IMU_MPUInit(&imu);
 
-  LRL_IMU_MagInit(&imu);
+//  LRL_IMU_MagInit(&imu);
 
   LRL_ROSSerial_Init(&usb2serial_packet, USB2SERIAL_UART_HANDLER);
   LRL_ROSSerial_Init(&ros_packet, JETSON_UART_HANDLER);
@@ -357,15 +357,15 @@ int main(void)
 		 LRL_PID_Update(&mypid, &odom);
 		 LRL_Motion_Control(diff_robot, mypid.Control_Signal_l,mypid.Control_Signal_r);
 
-		 if(_pid_counter == 10){
-			 _pid_counter = 0;
-		     LRL_IMU_MPUReadAll(&imu);
-		     LRL_IMU_MagReadHeading(&imu);
-		     if(!odom.is_pid)
-		     {
-		     	LRL_Odometry_ReadAngularSpeed(&odom);
-		     }
-		 }
+//		 if(_pid_counter == 10){
+//			 _pid_counter = 0;
+//		     LRL_IMU_MPUReadAll(&imu);
+//		     LRL_IMU_MagReadHeading(&imu);
+//		     if(!odom.is_pid)
+//		     {
+//		     	LRL_Odometry_ReadAngularSpeed(&odom);
+//		     }
+//		 }
 
 		 /* Alternative version for PID
 		 LRL_Odometry_ReadAngularSpeed(&odom);
