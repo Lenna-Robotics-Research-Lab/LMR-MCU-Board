@@ -25,20 +25,40 @@
  *
  * @param odom Pointer to the odometry configuration structure.
  */
-void LRL_Odometry_Init(odom_cfgType * odom)
+//void LRL_Odometry_Init(odom_cfgType * odom)
+//{
+//	// Reset hardware encoder counters to zero.
+//	__HAL_TIM_SET_COUNTER(odom->enc_right.htim, 0);
+//	__HAL_TIM_SET_COUNTER(odom->enc_left.htim, 0);
+//
+//	// Reset software tick and previous tick values.
+//	odom->enc_right.tick = 0;
+//	odom->enc_left.tick = 0;
+//	odom->enc_right.tick_prev = 0;
+//	odom->enc_left.tick_prev = 0;
+//	odom->is_pid = 0;
+//}
+
+void LRL_Odometry_Init(odom_cfgType *odom)
 {
-	// Reset hardware encoder counters to zero.
-	__HAL_TIM_SET_COUNTER(odom->enc_right.htim, 0);
-	__HAL_TIM_SET_COUNTER(odom->enc_left.htim, 0);
+    __HAL_TIM_SET_COUNTER(odom->enc_right.htim, 0);
+    __HAL_TIM_SET_COUNTER(odom->enc_left.htim, 0);
 
-	// Reset software tick and previous tick values.
-	odom->enc_right.tick = 0;
-	odom->enc_left.tick = 0;
-	odom->enc_right.tick_prev = 0;
-	odom->enc_left.tick_prev = 0;
-	odom->is_pid = 0;
+    odom->enc_right.tick = 0;
+    odom->enc_left.tick = 0;
+    odom->enc_right.tick_prev = 0;
+    odom->enc_left.tick_prev = 0;
+
+    odom->vel.right = 0;
+    odom->vel.left = 0;
+    odom->dist.right = 0;
+    odom->dist.left = 0;
+
+    odom->pending_dist_right_mm = 0.0f;
+    odom->pending_dist_left_mm = 0.0f;
+
+    odom->is_pid = 0;
 }
-
 
 /**
  * @brief Reads and updates wheel angular speeds and distances from encoders.

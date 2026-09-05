@@ -85,21 +85,24 @@ typedef struct
  */
 typedef struct
 {
-    // imu_cfgType        imu;         ///< IMU configuration/state (optional)
+    encoder_cfgType     enc_right;
+    encoder_cfgType     enc_left;
+    diffDrive_cfgType   diff_robot;
 
-    encoder_cfgType     enc_right;    ///< Right wheel encoder configuration/state
-    encoder_cfgType     enc_left;     ///< Left  wheel encoder configuration/state
-    diffDrive_cfgType   diff_robot;   ///< Differential-drive geometry/config (e.g., wheel radius, track width)
+    wheel_velocity      vel;
+    wheel_position      dist;
 
-    // linear_position   pose;        ///< Robot pose in world frame (optional)
-    // angular_position  angle;       ///< Robot orientation (optional)
-    // accelerometer     accel;       ///< IMU accelerometer readings (optional)
-    // gyroscope         gyro;        ///< IMU gyroscope readings (optional)
-    // magnetometer      mag;         ///< IMU magnetometer readings (optional)
+    /*
+     * Wheel distance accumulated since the preceding ReadAll response.
+     * Units: millimetres.
+     *
+     * These must remain floating-point so submillimetre movements are
+     * preserved between controller iterations and telemetry requests.
+     */
+    float pending_dist_right_mm;
+    float pending_dist_left_mm;
 
-    wheel_velocity      vel;          ///< Computed wheel angular velocities (signed)
-    wheel_position      dist;         ///< Computed incremental distances per update (signed)
-    uint8_t				is_pid;
+    uint8_t is_pid;
 } odom_cfgType;
 
 // ##############################################################
