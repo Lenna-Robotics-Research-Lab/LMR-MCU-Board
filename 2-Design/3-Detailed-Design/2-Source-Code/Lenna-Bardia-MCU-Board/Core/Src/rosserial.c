@@ -491,6 +491,7 @@ void LRL_ROSSerial_MotorSeped(rosserial_cfgType *rosserial_handle, pid_cfgType *
 	    (signs & 0x01) ? -(int16_t)rosserial_handle->data[4]
 	                   :  (int16_t)rosserial_handle->data[4];
 
+	HAL_UART_Transmit(rosserial_handle->huart, rosserial_handle->rxbuffer, rosserial_handle->pkt_len,10);
 //	HAL_UART_Transmit_IT(rosserial_handle->huart, rosserial_handle->rxbuffer, rosserial_handle->pkt_len);
 	rosserial_handle->dataValid = 0;
 
