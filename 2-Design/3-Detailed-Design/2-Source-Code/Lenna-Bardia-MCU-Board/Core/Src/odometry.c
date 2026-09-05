@@ -75,7 +75,7 @@ void LRL_Odometry_Init(odom_cfgType *odom)
 void LRL_Odometry_ReadAngularSpeed(odom_cfgType * odom)
 {
 	// Temporary variables for distance calculation.
-	float _temp_dist_right = 0, _temp_dist_left = 0;
+//	float _temp_dist_right = 0, _temp_dist_left = 0;
 
 	// Read current tick counts from the hardware timers.
 	odom->enc_right.tick = __HAL_TIM_GET_COUNTER(odom->enc_right.htim);
@@ -143,12 +143,28 @@ void LRL_Odometry_ReadAngularSpeed(odom_cfgType * odom)
 	/* ------------------- Distance calculation ------------------- */
 	// Convert the tick differences into incremental arc lengths for each wheel.
 	// Formula: distance = (ticks_diff / ticks_per_revolution) * circumference
-	_temp_dist_right += _dir_r * odom->vel.right * (2 * M_PI * odom->diff_robot.WHEEL_RADIUS) / odom->enc_right.MAX_ARR;
-	_temp_dist_left  += _dir_l * odom->vel.left  * (2 * M_PI * odom->diff_robot.WHEEL_RADIUS) / odom->enc_left.MAX_ARR;
+//	_temp_dist_right += _dir_r * odom->vel.right * (2 * M_PI * odom->diff_robot.WHEEL_RADIUS) / odom->enc_right.MAX_ARR;
+//	_temp_dist_left  += _dir_l * odom->vel.left  * (2 * M_PI * odom->diff_robot.WHEEL_RADIUS) / odom->enc_left.MAX_ARR;
+//	odom->dist.right = (int16_t)_temp_dist_right;
+//	odom->dist.left  = (int16_t)_temp_dist_left;
+
+	float delta_dist_right_mm =
+	    (float)_dir_r *
+	    (float)odom->vel.right *
+	    (2.0f * (float)M_PI * odom->diff_robot.WHEEL_RADIUS) /
+	    (float)odom->enc_right.MAX_ARR;
+
+	float delta_dist_left_mm =
+	    (float)_dir_l *
+	    (float)odom->vel.left *
+	    (2.0f * (float)M_PI * odom->diff_robot.WHEEL_RADIUS) /
+	    (float)odom->enc_left.MAX_ARR;
+
+	odom->pending_dist_right_mm += delta_dist_right_mm;
+	odom->pending_dist_left_mm += delta_dist_left_mm;
 
 	// Store incremental distances as integers (in millimeters).
-	odom->dist.right = (int16_t)_temp_dist_right;
-	odom->dist.left  = (int16_t)_temp_dist_left;
+
 
 	/* ------------------- Velocity conversion ------------------- */
 	// Convert tick differences into RPM using a calibrated factor.
